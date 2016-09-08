@@ -9,8 +9,11 @@
 '''
 
 import os
+import logging
 import commands
 from datetime import datetime, timedelta
+
+logger = logging.getLogger('stdout')
 
 
 class TagsLoader(object):
@@ -74,7 +77,7 @@ class TagsLoader(object):
 
 if __name__ == '__main__':
     try:
-        import logging
+        
         import logging.config
         from src.parser import conf
 
@@ -86,6 +89,5 @@ if __name__ == '__main__':
         fsPath = conf.get('basic', 'fs.tags.path')
         TagsLoader(hdfsPath, fsPath, duration).run()
     except Exception, e:
-        print str(e)
         logger.error(str(e))
         exit(-1)

@@ -10,21 +10,24 @@ fi
 
 cd ${base_dir}
 
-data_dir=${base_dir}"/data/"
-if [ -d ${data_dir} ];then
-    rm -r ${data_dir}* && echo "[INFO] "${data_dir}" cleaned"
-fi
+rmdirOnly() {
+    if [ $# == 0 ];then
+        echo "[WARN] Usage: rmdirOnly <dir1> [<dir2> ...]"
+        return
+    fi
 
 
-log_dir=${base_dir}"/logs/"
-if [ -d ${log_dir} ];then
-    rm -r ${log_dir}* && echo "[INFO] "${log_dir}" cleaned" && mkdir logs/tagsLoader logs/tagsDetector logs/webReloader
-fi
+    for d in $@;do
+        if [ -d $d ]
+        then
+            find $d -maxdepth 1 -mindepth 1 -type d -exec rm -rf '{}' \;
+            echo "[INFO] "$d"/ cleaned"
+        else
+            echo "[INFO] "$d"/ not exist"
+        fi
+    done
+}
 
-tmp_dir=${base_dir}"/tmp/"
-if [ -d ${tmp_dir} ];then
-    rm -r ${tmp_dir}* && echo "[INFO] "${tmp_dir}" cleaned"
-fi
 
-
+rmdirOnly data logs tmp
 echo "[INFO] Done"

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 '''
-根据tag生成的脚本
+检测tag -> 下载、备份、更新历史 -> 存储过程预处理
 
 @author: zhangzichao
 @date: 2016-09-07
@@ -27,6 +27,7 @@ logger = logging.getLogger('stdout')
 校验参数的合法性
 """
 
+
 def validate():
     if len(sys.argv) != 4:
         logger.error("Not enough params: [params=%s]" % str(sys.argv[1:]))
@@ -50,6 +51,7 @@ def validate():
 2. 根据tag信息（tag生成时间、tag所属日期目录）从Hive中导出数据到本地，同时备份数据
 3. 更新该tag此次回导操作的历史时间记录
 """
+
 
 def main(tag, table, hql):
     logger.info("Running tag detector ...")
@@ -85,7 +87,8 @@ if __name__ == '__main__':
     logging.config.fileConfig(conf.get('basic', 'log.conf.path'))
 
     if validate():
-        executor = TimeLimitExecutor(conf.getint('webReloader', 'run.timeout'), main, args=(sys.argv[1], sys.argv[2], sys.argv[3]))
+        executor = TimeLimitExecutor(conf.getint('webReloader', 'run.timeout'), main,
+                                     args=(sys.argv[1], sys.argv[2], sys.argv[3]))
         exitCode = executor.execute()
         if exitCode == 0:
             logger.info("Execute web reload success")

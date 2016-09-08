@@ -1,10 +1,10 @@
 #!/bin/bash
 
 base_dir=$(cd $(dirname $(dirname $0)); pwd)
-echo "Hive loader location: "${base_dir}
+echo "[INFO] Hive loader location: "${base_dir}
 
 if [ "${base_dir}" == "/" ];then
-    echo "[INFO] Wrong hive loader location!"
+    echo "[ERROR] Wrong hive loader location!"
     exit 1
 fi
 
@@ -12,4 +12,15 @@ fi
 export PYTHONPATH=${base_dir}
 cd ${base_dir}
 
-python scripts/webReload/webReload.py '10000' 'LOGON' 'select * from zzc_test;'
+script_file="scripts/webReload/webReload.py"
+echo "[INFO] Begin running web reload script: "${script_file}
+python ${script_file} "$@"
+exit_code=$?
+
+if [ ${exit_code} == 0 ]
+then
+    echo "[INFO] Run web reload script success"
+else
+    echo "[ERROR] Run web reload script failed: exitCode = "${exit_code}
+    exit -1
+fi
