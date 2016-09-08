@@ -24,14 +24,13 @@ class TagDetector(object):
 
     """
     初始化
-    @param tag: 待检测的tag
+    @param tag: 待检测的tag，包含组合tag 10000_20000
     @param duration: 检测tags集中最近duration天的时间
     @param tagsSetPath: 本地tags集的目录
     @param tagsHistoryPath: 本地tags的操作历史目录
     @param interval: 检测间隔
     @param times: 检测次数
     """
-
     def __init__(self, tag, duration, tagsSetPath, tagsHistoryPath, times, interval):
         self.__tag = tag
         self.__duration = duration
@@ -43,7 +42,6 @@ class TagDetector(object):
     """
     返回tag操作历史的时间，不存在时返回0
     """
-
     def __getTimeFromTagsHistory(self):
         dirPath = os.path.join(self.__tagsHistoryPath, self.__tag)
         if os.path.isdir(dirPath):
@@ -63,16 +61,20 @@ class TagDetector(object):
     返回tags集最近n天中大于操作历史时间historyTime的最小值，不存在满足条件的时间时，返回None
     @param historyTime: 操作历史时间
     """
-
     def __getTimeFromTagsSet(self, historyTime):
         basetime = datetime.now()
         minTagsSetTime = None      # tags集中最小值
         minTagsSetTimeDate = None  # 记录minTagsSetTime所在日志目录，即tag所属日期
         for i in range(self.__duration):
             date = (basetime + timedelta(days=-i)).strftime('%Y%m%d')
-            dayTagsSetTime = self.__getTimeFromTagsSetDay(historyTime, date)
+            dayTagsSetTime = self.__getMaxTimeFromTagsSetDay(date)
 
-            if dayTagsSetTime is None:
+            if dayTagsSetTime is None or dayTagsSetTime <= historyTime:
+                if dayTagsSetTime is None:
+                    logger.info("Tag not created: [date=%s] [tag=%s]" % (date, self.__tag))
+                else:
+                    logger.info("Time out of date: [date=%s] [dayTagsSetTime=%s] [historyTime=%s]" % (
+                        date, dayTagsSetTime, historyTime))
                 continue
             logger.info("Got tag [tag=%s] time of date [date=%s] from tags set: [time=%s]" %
                         (self.__tag, date, str(dayTagsSetTime)))
@@ -84,29 +86,33 @@ class TagDetector(object):
         return minTagsSetTime, minTagsSetTimeDate
 
     """
-    返回tags集date日期中大于操作历史时间historyTime的最小值，不存在满足条件的时间时，返回None
-    @param historyTime: 操作历史时间
+    返回tags集date日期目录下tag的生成时间，当tag为组合tag时返回全部子tag中最大的生成时间
+    部分tag未生成或不存在有效的tag生成时间时，返回None
     @param date: 日期
     """
-
-    def __getTimeFromTagsSetDay(self, historyTime, date):
+    def __getMaxTimeFromTagsSetDay(self, date):
         try:
-            filePath = os.path.join(self.__tagsSetPath, date, self.__tag)
-            if os.path.isfile(filePath):
+            maxTime = None
+            for subtag in self.__tag.split('_'):
+                filePath = os.path.join(self.__tagsSetPath, date, subtag)
+                # 日期date下的tag未生成
+                if not os.path.isfile(filePath):
+                    logger.debug("Tag not created: [date=%s] [tag=%s]" % (date, subtag))
+                    return None
+
                 with open(filePath, 'r') as freader:
                     tm = freader.read(12)
-                    if tm.isdigit() and tm > historyTime:
-                        return tm
-            return None
+                    if tm.isdigit() and (maxTime is None or tm > maxTime):
+                        maxTime = tm
+            return maxTime
         except Exception, e:
-            logger.warning("Get tag [tag=%s] time of date [date=%s] from tags set exception, error: %s" % (
+            logger.error("Get tag [tag=%s] time of date [date=%s] from tags set exception, error: %s" % (
                 self.__tag, date, str(e)))
             return None
 
     """
     检测times次，每次间隔interval时长
     """
-
     def detect(self):
         historyTime = self.__getTimeFromTagsHistory()
         logger.info("Get tag operation history time: %s" % str(historyTime))

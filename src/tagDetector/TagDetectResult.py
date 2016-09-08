@@ -18,7 +18,6 @@ class TagDetectResult(object):
     @param minTagsSetTime: 该tag在tags集中继上次操作后最小的生成时间
     @param minTagsSetTimeDate: 该tag在HDFS上所属日期目录
     """
-
     def __init__(self, tag, hasDetected, minTagsSetTime=None, minTagsSetTimeDate=None):
         self.tag = tag
         self.hasDetected = hasDetected

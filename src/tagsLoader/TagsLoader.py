@@ -24,7 +24,6 @@ class TagsLoader(object):
     @param fsPath: 本地存放路径
     @param duration: 时间范围，单位：天
     """
-
     def __init__(self, hdfsPath, fsPath, duration):
         self.hdfsPath = hdfsPath
         self.fsPath = fsPath
@@ -35,7 +34,6 @@ class TagsLoader(object):
     执行shell命令获取basetime前duration天的tag，并写入文件
     @param basetime: 时间区间的最后一天
     """
-
     def run(self, basetime=None):
         basetime = datetime.now() if basetime is None else basetime
         for i in range(self.duration):
@@ -54,7 +52,6 @@ class TagsLoader(object):
     @param date: tag生成的日期
     @param lines: shell命令的输出内容
     """
-
     def __write(self, date, lines):
         ldir = os.path.join(self.fsPath, date)
         if not os.path.isdir(ldir):

@@ -27,20 +27,23 @@ logger = logging.getLogger('stdout')
 """
 校验参数的合法性
 """
-
-
 def validate():
     if len(sys.argv) != 4:
-        logger.error("Not enough params: [params=%s]" % str(sys.argv[1:]))
-        return False
-
-    if '%s' not in sys.argv[3]:
-        logger.error("HQL format is invalid: [hql=%s]" % sys.argv[3])
+        logger.error("Wrong params numbers: [params=%s]" % str(sys.argv[1:]))
         return False
 
     if sys.argv[1] == '':
         logger.error("Tag cannot be empty")
         return False
+
+    if sys.argv[2].count('&') != sys.argv[3].count('&'):
+        logger.error("Table's number is not equal to hql's number: [params=%s]" % (sys.argv[1:]))
+        return False
+
+    for hql in sys.argv[3].split('&'):
+        if '%s' not in hql:
+            logger.error("HQL format is invalid: [hqls=%s]" % sys.argv[3])
+            return False
 
     logger.info("Params validation success")
     return True
@@ -52,9 +55,7 @@ def validate():
 2. 根据tag信息（tag生成时间、tag所属日期目录）从Hive中导出数据到本地，同时备份数据
 3. 更新该tag此次回导操作的历史时间记录
 """
-
-
-def main(tag, table, hql):
+def main(tag, tableList, hqlList):
     logger.info("Running tag detector ...")
     detector = TagDetector(tag=tag,
                            duration=conf.getint('basic', 'sync.duration'),
@@ -70,12 +71,18 @@ def main(tag, table, hql):
         recordDay = (datetime.strptime(detectResult.minTagsSetTimeDate,
                                        '%Y%m%d') + timedelta(days=-1)).strftime('%Y%m%d')
         logger.info('Running web reloader ...')
+
+        loadPath = conf.get('webReloader', 'load.path')
+        loadPathList = [os.path.join(loadPath, table) for table in tableList]
+
+        bakupPath = conf.get('webReloader', 'bakup.path')
+        bakupPathList = [os.path.join(bakupPath ,table, recordDay) for table in tableList]
+
         reloader = WebReloader(tag=tag,
-                               table=table,
-                               loadPath=os.path.join(conf.get('webReloader', 'load.path'), table),
-                               bakupPath=os.path.join(conf.get('webReloader', 'bakup.path'),
-                                                      table, recordDay),
-                               hql=hql % recordDay,
+                               tableList=tableList,
+                               loadPathList=loadPathList,
+                               bakupPathList=bakupPathList,
+                               hqlList=[hql % recordDay for hql in hqlList],
                                tagsHistoryPath=conf.get('webReloader', 'tags.history.path'),
                                operationTime=detectResult.minTagsSetTime,
                                separator=conf.get('webReloader', 'field.separator', '|'),
@@ -92,7 +99,7 @@ if __name__ == '__main__':
 
     if validate():
         executor = TimeLimitExecutor(conf.getint('webReloader', 'run.timeout'), main,
-                                     args=(sys.argv[1], sys.argv[2], sys.argv[3]))
+                         args=(sys.argv[1], sys.argv[2].split('&'), sys.argv[3].split('&')))
         exitCode = executor.execute()
         if exitCode == 0:
             logger.info("Execute web reload success")

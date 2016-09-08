@@ -24,7 +24,6 @@ class TimeLimitExecutor(object):
 
     @return 任务退出码: 0正常退出, 1程序异常, -n进程被信号n结束, None执行超时被结束
     """
-
     def __init__(self, timeLimit, target, name=None, args=(), kwargs={}):
         self.__timeLimit = timeLimit
         self.__target = target
@@ -35,7 +34,6 @@ class TimeLimitExecutor(object):
     """
     执行任务
     """
-
     def execute(self):
         p = multiprocessing.Process(target=self.__target,
                                     name=self.__name,
