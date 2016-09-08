@@ -25,7 +25,7 @@ class Operator(object):
         self.tag = tag                             # tag
         self.table = table                         # 表名
         self.loadPath = loadPath                   # 下载Hive数据的存放路径
-        self.bakupPath = bakupPath                 # Hive数据备份路径 
+        self.bakupPath = bakupPath                 # Hive数据备份路径
         self.hql = hql                             # 下载数据执行的sql
         self.tagsHistoryPath = tagsHistoryPath     # 操作历史的路径
         self.operationTime = operationTime         # 此次操作的时间
@@ -38,17 +38,18 @@ class Operator(object):
 
         if not os.path.isdir(self.bakupPath):
             os.makedirs(self.bakupPath)
-        
+
     """
     [Overwrite] 执行
     """
+
     def run(self):
         pass
-
 
     """
     [Overwrite] 检查hive进程数是否小于允许的并发数，即load操作是否允许执行
     """
+
     def _isAllowed(self):
         pass
         # getProcessCountCmd = "jps -m|grep -v 'Jps -m'|awk '{print $3}'|grep  hive|wc -l"
@@ -56,10 +57,10 @@ class Operator(object):
         # logger.info("Get hive process count: [cmd=%s] [limit=%d] [count=%d]" % (getProcessCountCmd, self.parallel, count))
         # return count < self.parallel
 
-
     """
     [Overwrite] 执行命令从Hive上下载数据
     """
+
     def _load(self):
         pass
         # while not self.__isAllowed():
@@ -77,18 +78,18 @@ class Operator(object):
         #     return False
         # return True
 
-
     """
     备份数据
     """
+
     def _backup(self):
         FileUtils.backup(self.loadPath, self.bakupPath)
         logger.info("Backup data success: [bakupPath=%s]" % self.bakupPath)
 
-
     """
     更新操作历史时间
     """
+
     def _updateHistory(self):
         dirPath = os.path.join(self.tagsHistoryPath, str(self.tag))
         if not os.path.isdir(dirPath):

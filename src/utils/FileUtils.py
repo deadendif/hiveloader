@@ -24,13 +24,12 @@ class FileUtils(object):
         if not os.path.isdir(path) and not os.path.isfile(path):
             return -1
 
-        param =  (path + '/*') if os.path.isdir(path) else path
+        param = (path + '/*') if os.path.isdir(path) else path
         countCmd = "wc -l %s | grep -v total | awk '{sum += $1};END {print sum}'|awk '{print $1}'" % param
         out = commands.getstatusoutput(countCmd)
         if 'No' in out[1].strip():
             return -2
         return int(out[1].strip())
-
 
     """
     删除目录下的隐藏文件
@@ -42,7 +41,6 @@ class FileUtils(object):
 
         rmCmd = "rm %s/.*"
         return os.system(rmCmd) == 0
-
 
     """
     对目录下的文件添加扩展名
@@ -59,7 +57,6 @@ class FileUtils(object):
             path = os.path.join(dirPath, fl)
             if os.path.isfile(path):
                 os.rename(path, path + "." + extension)
-
 
     """
     备份目录

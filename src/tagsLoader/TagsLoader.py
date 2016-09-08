@@ -77,7 +77,7 @@ class TagsLoader(object):
 
 if __name__ == '__main__':
     try:
-        
+
         import logging.config
         from src.parser import conf
 
