@@ -13,6 +13,7 @@ import sys
 import time
 import logging
 import logging.config
+from datetime import datetime, timedelta
 
 from src.parser import conf
 from src.tagDetector.TagDetector import TagDetector
@@ -33,9 +34,9 @@ def validate():
         logger.error("Not enough params: [params=%s]" % str(sys.argv[1:]))
         return False
 
-    # if '%s' not in sys.argv[3]:
-    #     logger.error("HQL format is invalid: [hql=%s]" % sys.argv[3])
-    #     return False
+    if '%s' not in sys.argv[3]:
+        logger.error("HQL format is invalid: [hql=%s]" % sys.argv[3])
+        return False
 
     if sys.argv[1] == '':
         logger.error("Tag cannot be empty")
@@ -65,13 +66,16 @@ def main(tag, table, hql):
     logger.info('Detect result: %s' % str(detectResult))
 
     if detectResult.hasDetected:
+        # 话单时间
+        recordDay = (datetime.strptime(detectResult.minTagsSetTimeDate,
+                                       '%Y%m%d') + timedelta(days=-1)).strftime('%Y%m%d')
         logger.info('Running web reloader ...')
         reloader = WebReloader(tag=tag,
                                table=table,
                                loadPath=os.path.join(conf.get('webReloader', 'load.path'), table),
                                bakupPath=os.path.join(conf.get('webReloader', 'bakup.path'),
-                                                      table, detectResult.minTagsSetTimeDate),
-                               hql=hql,  # % detectResult.minTagsSetTimeDate,
+                                                      table, recordDay),
+                               hql=hql % recordDay,
                                tagsHistoryPath=conf.get('webReloader', 'tags.history.path'),
                                operationTime=detectResult.minTagsSetTime,
                                separator=conf.get('webReloader', 'field.separator', '|'),
