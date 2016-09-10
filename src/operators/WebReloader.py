@@ -56,14 +56,15 @@ class WebReloader(Operator):
         while not self._isAllowed():
             time.sleep(60)
 
+        filepath = os.path.join(loadPath, table + '.txt')
         loadCmd = "java -jar lib/hivedownload/hivedownload-1.0-SNAPSHOT-jar-with-dependencies.jar '%s' '%s' '%s'" % (
-            hql, os.path.join(loadPath, table + '.txt'), self.separator)
+            hql, filepath, self.separator)
         while self.retryTimes > 0:
             self.retryTimes -= 1
             logger.info("Executing load commnad: [retryTimes=%d] [cmd=%s]" % (self.retryTimes, loadCmd))
             if 0 == os.system(loadCmd):
                 logger.info("Load from hive success: [loadPath=%s] [loadRecordNum=%d]" %
-                            (loadPath, FileUtils.countRow(loadPath)))
+                            (loadPath, FileUtils.countFileRow(filepath)))
                 break
         else:
             logger.error("Load data from hive failed: [cmd=%s]" % loadCmd)

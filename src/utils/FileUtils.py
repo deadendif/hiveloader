@@ -16,20 +16,20 @@ import commands
 class FileUtils(object):
 
     """
-    统计文件或目录的行数（统计目录时不统计隐藏文件）
-    @return -1 不存在, -2 执行出错
+    统计文件行数
+    @return 不存在返回0，出错返回-1
     """
     @staticmethod
-    def countRow(path):
-        if not os.path.isdir(path) and not os.path.isfile(path):
-            return -1
+    def countFileRow(path):
+        if not os.path.isfile(path):
+            return 0
 
-        param = (path + '/*') if os.path.isdir(path) else path
-        countCmd = "wc -l %s | grep -v total | awk '{sum += $1};END {print sum}'|awk '{print $1}'" % param
-        out = commands.getstatusoutput(countCmd)
-        if 'No' in out[1].strip():
-            return -2
-        return int(out[1].strip())
+        countCmd = "wc -l %s | grep -v total | awk '{sum += $1};END {print sum}'|awk '{print $1}'" % path
+        count = commands.getstatusoutput(countCmd)[1]
+        if count.isdigit():
+            return int(count)
+        else:
+            return -1
 
     """
     删除目录下的隐藏文件
