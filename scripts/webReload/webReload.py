@@ -45,6 +45,11 @@ def validate():
             logger.error("HQL format is invalid: [hqls=%s]" % sys.argv[3])
             return False
 
+    for sql in sys.argv[4].split('&'):
+        if '%s' not in sql:
+            logger.error("SQL format is invalid: [sqls=%s]" % sys.argv[4])
+            return False
+
     logger.info("Params validation success")
     return True
 
@@ -55,7 +60,7 @@ def validate():
 2. 根据tag信息（tag生成时间、tag所属日期目录）从Hive中导出数据到本地，同时备份数据
 3. 更新该tag此次回导操作的历史时间记录
 """
-def main(tag, tableList, hqlList):
+def main(tag, tableList, hqlList, sqlList):
     logger.info("Running tag detector ...")
     detector = TagDetector(tag=tag,
                            duration=conf.getint('basic', 'sync.duration'),
@@ -76,13 +81,14 @@ def main(tag, tableList, hqlList):
         loadPathList = [os.path.join(loadPath, table) for table in tableList]
 
         bakupPath = conf.get('webReloader', 'bakup.path')
-        bakupPathList = [os.path.join(bakupPath ,table, recordDay) for table in tableList]
+        bakupPathList = [os.path.join(bakupPath, table, recordDay) for table in tableList]
 
         reloader = WebReloader(tag=tag,
                                tableList=tableList,
                                loadPathList=loadPathList,
                                bakupPathList=bakupPathList,
                                hqlList=[hql % recordDay for hql in hqlList],
+                               hqlList=[sql % recordDay for sql in sqlList],
                                tagsHistoryPath=conf.get('webReloader', 'tags.history.path'),
                                operationTime=detectResult.minTagsSetTime,
                                separator=conf.get('webReloader', 'field.separator', '|'),
@@ -99,7 +105,7 @@ if __name__ == '__main__':
 
     if validate():
         executor = TimeLimitExecutor(conf.getint('webReloader', 'run.timeout'), main,
-                         args=(sys.argv[1], sys.argv[2].split('&'), sys.argv[3].split('&')))
+                                     args=(sys.argv[1], sys.argv[2].split('&'), sys.argv[3].split('&'), sys.argv[4].split('&')))
         exitCode = executor.execute()
         if exitCode == 0:
             logger.info("Execute web reload success")

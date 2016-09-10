@@ -64,9 +64,11 @@ class FileUtils(object):
     @param dstDirPath: 备份目录
     """
     @staticmethod
-    def backup(srcDirPath, dstDirPath):
+    def backup(srcDirPath, dstDirPath, filesOnly=False, ignore=()):
         if not os.path.isdir(srcDirPath):
             return
 
-        shutil.rmtree(dstDirPath)
-        shutil.copytree(srcDirPath, dstDirPath)
+        if os.path.isdir(dstDirPath):
+            shutil.rmtree(dstDirPath)
+
+        shutil.copytree(srcDirPath, dstDirPath, ignore=shutil.ignore_patterns(*ignore))

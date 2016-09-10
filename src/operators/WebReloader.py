@@ -21,11 +21,24 @@ logger = logging.getLogger('stdout')
 
 class WebReloader(Operator):
 
-    def _run(self, table, loadPath, bakupPath, hql):
-        self._init(loadPath, bakupPath)
-        if not self._load(table, loadPath, hql):
+    def __init__(self, tag, tableList, loadPathList, bakupPathList, hqlList, sqlList, tagsHistoryPath,
+                 operationTime, separator='|', parallel=50, retryTimes=3):
+        super(WebReloader, self).__init__(tag, tableList, loadPathList, bakupPathList, hqlList, tagsHistoryPath,
+                                          operationTime, separator, parallel, retryTimes)
+        self.sqlList = sqlList      # Oracle中执行的sql语句
+
+    def _run(self, i):
+        # 初始化本地下载路径和存放路径
+        self._init(self.loadPathList[i], self.bakupPathList[i])
+        # 从Hive下载数据
+        if not self._load(self.tableList[i], self.loadPathList[i], self.hqlList[i]):
             return False
-        self._backup(loadPath, bakupPath)
+        # 备份数据
+        self._backup(self.loadPathList[i], self.bakupPathList[i])
+        # 执行sql，删除分区数据避免重复
+        if not self._prepareForSqlldr(self.sqlList[i]):
+            return False
+        # 更新操作历史
         self._updateHistory()
         return True
 
@@ -61,7 +74,7 @@ class WebReloader(Operator):
             hql, filepath, self.separator)
         while self.retryTimes > 0:
             self.retryTimes -= 1
-            logger.info("Executing load commnad: [retryTimes=%d] [cmd=%s]" % (self.retryTimes, loadCmd))
+            logger.info("Executing load command: [retryTimes=%d] [cmd=%s]" % (self.retryTimes, loadCmd))
             if 0 == os.system(loadCmd):
                 logger.info("Load from hive success: [loadPath=%s] [loadRecordNum=%d]" %
                             (loadPath, FileUtils.countFileRow(filepath)))
@@ -70,6 +83,18 @@ class WebReloader(Operator):
             logger.error("Load data from hive failed: [cmd=%s]" % loadCmd)
             return False
         return True
+
+    """
+    执行导入Oracle数据库前用于清空分区数据的sql，避免数据重复
+    """
+    def _prepareForSqlldr(self, sql):
+        sqlCmd = "echo -e  \"%s; \n commit; \n exit;\" | sqlplus -S qixz/qixz@EBBI" % sql
+        logger.info("Running sql command: [cmd=%s]" % sqlCmd)
+        out = commands.getstatusoutput(sqlCmd)
+        if out[0] == 0 and "ERROR" not in out[1].upper():
+            logger.info("Run sql command success: [output=%s]" % out[1])
+        else:
+            logger.error("Run sql command exception: [cmd=%s] [output=%s]" % (sqlCmd, out[1]))
 
 
 if __name__ == '__main__':
@@ -81,10 +106,10 @@ if __name__ == '__main__':
 
     logger.info('Begin web reload ....')
     wr = WebReloader(tag='10000',
-                     tableList=["LOGON",],
-                     loadPathList=['/tmp/hiveloader/LOGON/',],
-                     bakupPathList=['/tmp/hiveloaderbakup/LOGON/20160906/',],
-                     hqlList=['select * from zzc_test;',],
+                     tableList=["LOGON", ],
+                     loadPathList=['/tmp/hiveloader/LOGON/', ],
+                     bakupPathList=['/tmp/hiveloaderbakup/LOGON/20160906/', ],
+                     hqlList=['select * from zzc_test;', ],
                      tagsHistoryPath='data/tagsHistory/',
                      operationTime='201609041200',
                      separator='|',

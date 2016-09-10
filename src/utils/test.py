@@ -19,6 +19,9 @@ class Task(object):
 
 if __name__ == '__main__':
     # print FileUtils.countRow('/home/deadend/code/java/basic/')
-    t = Task(2)
-    exe = TimeLimitExecutor(10, t.run, args=(3, ))
-    exe.execute()
+
+    # t = Task(2)
+    # exe = TimeLimitExecutor(10, t.run, args=(3, ))
+    # exe.execute()
+
+    FileUtils.backup('/tmp/zzc/', '/tmp/bak', ignore=("folder", ))

@@ -25,7 +25,7 @@ class Operator(object):
     初始化，tableList、loadPathList、bakupPathList、hqlList等长且同下标的值为一组
     """
     def __init__(self, tag, tableList, loadPathList, bakupPathList, hqlList, tagsHistoryPath,
-                 operationTime, separator='|', parallel=50, retryTimes=3):
+                 operationTime, separator, parallel, retryTimes):
         self.tag = tag                             # tag
         self.tableList = tableList                 # 表名
         self.loadPathList = loadPathList           # 下载Hive数据的存放路径
@@ -39,17 +39,18 @@ class Operator(object):
 
     """
     顺序执行各操作
+    @return 是否全部执行成功
     """
     def run(self):
         for i in range(len(self.tableList)):
-            if not self._run(self.tableList[i], self.loadPathList[i], self.bakupPathList[i], self.hqlList[i]):
+            if not self._run(i):
                 return False
         return True
 
     """
-    [Overwrite] 执行单个操作
+    [Overwrite] 执行第i个子操作
     """
-    def _run(self):
+    def _run(self, i):
         pass
 
     """
@@ -68,7 +69,7 @@ class Operator(object):
     备份数据
     """
     def _backup(self, loadPath, bakupPath):
-        FileUtils.backup(loadPath, bakupPath)
+        FileUtils.backup(loadPath, bakupPath, ignore=("finishedfiles", ))
         logger.info("Backup data success: [loadPath=%s] [bakupPath=%s]" % (loadPath, bakupPath))
 
     """
