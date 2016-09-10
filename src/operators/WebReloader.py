@@ -93,8 +93,10 @@ class WebReloader(Operator):
         out = commands.getstatusoutput(sqlCmd)
         if out[0] == 0 and "ERROR" not in out[1].upper():
             logger.info("Run sql command success: [output=%s]" % out[1])
+            return True
         else:
             logger.error("Run sql command exception: [cmd=%s] [output=%s]" % (sqlCmd, out[1]))
+            return False
 
 
 if __name__ == '__main__':

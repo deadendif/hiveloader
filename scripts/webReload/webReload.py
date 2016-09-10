@@ -28,7 +28,7 @@ logger = logging.getLogger('stdout')
 校验参数的合法性
 """
 def validate():
-    if len(sys.argv) != 4:
+    if len(sys.argv) != 5:
         logger.error("Wrong params numbers: [params=%s]" % str(sys.argv[1:]))
         return False
 
@@ -88,7 +88,7 @@ def main(tag, tableList, hqlList, sqlList):
                                loadPathList=loadPathList,
                                bakupPathList=bakupPathList,
                                hqlList=[hql % recordDay for hql in hqlList],
-                               hqlList=[sql % recordDay for sql in sqlList],
+                               sqlList=[sql % recordDay for sql in sqlList],
                                tagsHistoryPath=conf.get('webReloader', 'tags.history.path'),
                                operationTime=detectResult.minTagsSetTime,
                                separator=conf.get('webReloader', 'field.separator', '|'),
