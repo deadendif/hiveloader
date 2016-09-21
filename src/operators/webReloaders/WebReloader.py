@@ -29,7 +29,7 @@ class WebReloader(JavaLoaderMixin, BackupMixin, RunSqlMixin, UpdateHistoryMixin)
     @param bakupPathList
     @param ignore
 
-    @param connection
+    @param connectionList
     @param sqlList
 
     @param tag
@@ -38,11 +38,11 @@ class WebReloader(JavaLoaderMixin, BackupMixin, RunSqlMixin, UpdateHistoryMixin)
     """
     def __init__(self, tableList, hqlList, loadPathList, separator, parallel, retryTimes,
                  bakupPathList, ignore,
-                 connection, sqlList,
+                 connectionList, sqlList,
                  tag, tagsHistoryPath, operationTime):
         JavaLoaderMixin.__init__(self, tableList, hqlList, loadPathList, separator, parallel, retryTimes)
         BackupMixin.__init__(self, bakupPathList, ignore)
-        RunSqlMixin.__init__(self, connection, sqlList)
+        RunSqlMixin.__init__(self, connectionList, sqlList)
         UpdateHistoryMixin.__init__(self, tag, tagsHistoryPath, operationTime)
 
     """
@@ -55,7 +55,7 @@ class WebReloader(JavaLoaderMixin, BackupMixin, RunSqlMixin, UpdateHistoryMixin)
         # 备份数据
         self._backup(self.loadPathList[i], self.bakupPathList[i])
         # 执行sql，删除分区数据避免重复
-        if not self._runSql(self.sqlList[i]):
+        if not self._runSql(self.connectionList[i], self.sqlList[i]):
             return False
         # 更新操作历史
         self._updateHistory()

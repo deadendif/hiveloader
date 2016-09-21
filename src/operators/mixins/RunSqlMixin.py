@@ -19,18 +19,18 @@ class RunSqlMixin(object):
 
     """
     初始化
-    @param connection: sqlplus参数，<用户名>/<密码>@<服务名>
+    @param connectionList: sqlplus参数，<用户名>/<密码>@<服务名>
     @param sqlList: SQL语句
     """
-    def __init__(self, connection, sqlList):
-        self.connection = connection
+    def __init__(self, connectionList, sqlList):
+        self.connectionList = connectionList
         self.sqlList = sqlList
 
     """
     执行SQL语句
     """
-    def _runSql(self, sql):
-        sqlCmd = "echo -e  \"%s; \n commit; \n exit;\" | sqlplus -S %s" % (sql, self.connection)
+    def _runSql(self, connection, sql):
+        sqlCmd = "echo -e  \"%s; \n commit; \n exit;\" | sqlplus -S %s" % (sql, connection)
         logger.info("Running sql command: [cmd=%s]" % sqlCmd)
         out = commands.getstatusoutput(sqlCmd)
         if out[0] == 0 and "ERROR" not in out[1].upper():

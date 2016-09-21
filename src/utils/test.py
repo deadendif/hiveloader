@@ -3,6 +3,7 @@
 
 import time
 from FileUtils import FileUtils
+from TimeUtils import TimeUtils
 from TimeLimitExecutor import TimeLimitExecutor
 
 
@@ -24,4 +25,6 @@ if __name__ == '__main__':
     # exe = TimeLimitExecutor(10, t.run, args=(3, ))
     # exe.execute()
 
-    FileUtils.backup('/tmp/zzc/', '/tmp/bak', ignore=("folder", ))
+    # FileUtils.backup('/tmp/zzc/', '/tmp/bak', ignore=("folder", ))
+
+    print TimeUtils.tsp2time(1472478350916)

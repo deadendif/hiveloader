@@ -40,6 +40,15 @@ def validate():
         logger.error("Table's number is not equal to hql's number: [params=%s]" % (sys.argv[1:]))
         return False
 
+    if sys.argv[2].count('&') != sys.argv[4].count('&'):
+        logger.error("Table's number is not equal to sql's number: [params=%s]" % (sys.argv[1:]))
+        return False
+
+    for table in sys.argv[2].split('&'):
+        if ':' not in table:
+            logger.error("Table format is invalid: [tables=%s]" % sys.argv[2])
+            return False
+
     for hql in sys.argv[3].split('&'):
         if '%s' not in hql:
             logger.error("HQL format is invalid: [hqls=%s]" % sys.argv[3])
@@ -60,7 +69,7 @@ def validate():
 2. 根据tag信息（tag生成时间、tag所属日期目录）从Hive中导出数据到本地，同时备份数据
 3. 更新该tag此次回导操作的历史时间记录
 """
-def main(tag, tableList, hqlList, sqlList):
+def main(tag, detailTableList, hqlList, sqlList):
     logger.info("Running tag detector ...")
     detector = TagDetector(tag=tag,
                            duration=conf.getint('basic', 'sync.duration'),
@@ -77,6 +86,9 @@ def main(tag, tableList, hqlList, sqlList):
                                        '%Y%m%d') + timedelta(days=-1)).strftime('%Y%m%d')
         logger.info('Running web reloader ...')
 
+        connectionList = [dt.split(':')[0] for dt in detailTableList]
+        tableList = [dt.split(':')[1].upper() for dt in detailTableList]
+
         loadPath = conf.get('webReloader', 'load.path')
         loadPathList = [os.path.join(loadPath, table) for table in tableList]
 
@@ -92,7 +104,7 @@ def main(tag, tableList, hqlList, sqlList):
                                retryTimes=conf.getint('webReloader', 'retry.time'),
                                bakupPathList=bakupPathList,
                                ignore=("finishedfiles", ),
-                               connection=conf.get('webReloader', 'oracle.connection'),
+                               connectionList=connectionList,
                                sqlList=[sql % recordDay for sql in sqlList],
                                tagsHistoryPath=conf.get('webReloader', 'tags.history.path'),
                                operationTime=detectResult.minTagsSetTime)
