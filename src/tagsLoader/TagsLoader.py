@@ -28,7 +28,7 @@ class TagsLoader(object):
         self.hdfsPath = hdfsPath
         self.fsPath = fsPath
         self.duration = duration
-        self.cmd = "hadoop fs -ls %s 2> /dev/null | awk '{print $6, $7, $8}'"
+        self.cmd = "hadoop fs -stat '%%n %%Y' %s/*"
 
     """
     执行shell命令获取basetime前duration天的tag，并写入文件
@@ -41,7 +41,7 @@ class TagsLoader(object):
             rdir = os.path.join(self.hdfsPath, date)
             logger.info("Executing command to loading tags: [cmd=%s]" % (self.cmd % rdir))
             out = commands.getstatusoutput(self.cmd % rdir)
-            logger.info("Command output: %s" % str(out))
+            logger.debug("Command output: %s" % str(out))
             if out[0] == 0:
                 self.__write(date.replace('/', ''), out[1].split('\n'))
             else:
@@ -50,7 +50,7 @@ class TagsLoader(object):
     """
     将shell命令的输出写入本地文件
     @param date: tag生成的日期
-    @param lines: shell命令的输出内容
+    @param lines: shell命令的输出内容，行格式 'tag 时间戳'
     """
     def __write(self, date, lines):
         ldir = os.path.join(self.fsPath, date)
@@ -58,33 +58,25 @@ class TagsLoader(object):
             os.makedirs(ldir)
 
         for line in lines:
-            if '/user' not in line or 'No such' in line:   # 去除无用输出
-                continue
-            tag = line.rsplit('/')[-1]
+            tag, tsp = line.split(' ')
             hiddenFilePath = os.path.join(ldir, '.' + tag)
             normalFilePath = os.path.join(ldir, tag)
-            time = line.split('/')[0].replace(' ', '').replace('-', '').replace(':', '')
             with open(hiddenFilePath, 'w') as writer:
-                writer.write(time)
+                writer.write(tsp)
 
             if os.path.isfile(hiddenFilePath):
                 os.rename(hiddenFilePath, normalFilePath)
-                logger.info("Load tag '%s' to file '%s' success" % (tag, normalFilePath))
+                logger.info("Load tag '%s' to file '%s' success, timestamp: %s" % (tag, normalFilePath, tsp))
 
 
 if __name__ == '__main__':
-    try:
+    import logging.config
+    from src.parser import conf
 
-        import logging.config
-        from src.parser import conf
+    logging.config.fileConfig(conf.get('basic', 'log.conf.path'))
 
-        logging.config.fileConfig(conf.get('basic', 'log.conf.path'))
-
-        logger = logging.getLogger('stdout')
-        duration = conf.getint('basic', 'sync.duration')
-        hdfsPath = conf.get('basic', 'hdfs.tags.path')
-        fsPath = conf.get('basic', 'fs.tags.path')
-        TagsLoader(hdfsPath, fsPath, duration).run()
-    except Exception, e:
-        logger.error(str(e))
-        exit(-1)
+    logger = logging.getLogger('stdout')
+    duration = conf.getint('basic', 'sync.duration')
+    hdfsPath = conf.get('basic', 'hdfs.tags.path')
+    fsPath = conf.get('basic', 'fs.tags.path')
+    TagsLoader(hdfsPath, fsPath, duration).run()

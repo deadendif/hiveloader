@@ -40,7 +40,7 @@ class TagDetector(object):
         self.__interval = interval
 
     """
-    返回tag操作历史的时间，不存在时返回0
+    返回tag操作历史的时间戳，不存在时返回0
     """
     def __getTimeFromTagsHistory(self):
         dirPath = os.path.join(self.__tagsHistoryPath, self.__tag)
@@ -59,7 +59,7 @@ class TagDetector(object):
 
     """
     返回tags集最近n天中大于操作历史时间historyTime的最小值，不存在满足条件的时间时，返回None
-    @param historyTime: 操作历史时间
+    @param historyTime: 操作历史时间戳
     """
     def __getTimeFromTagsSet(self, historyTime):
         basetime = datetime.now()
@@ -101,7 +101,7 @@ class TagDetector(object):
                     return None
 
                 with open(filePath, 'r') as freader:
-                    tm = freader.read(12)
+                    tm = freader.read(13)
                     if tm.isdigit() and (maxTime is None or tm > maxTime):
                         maxTime = tm
             return maxTime
@@ -119,7 +119,7 @@ class TagDetector(object):
         while self.__times > 0:
             self.__times -= 1
             minTagsSetTime, minTagsSetTimeDate = self.__getTimeFromTagsSet(historyTime)
-            logger.info("Get minTagsSetTime = %s, minTagsSetTimeDate = %s, remain time = %s" %
+            logger.info("Get minTagsSetTime = %s, minTagsSetTimeDate = %s, remainTimes = %s" %
                         (str(minTagsSetTime), str(minTagsSetTimeDate), str(self.__times)))
             if minTagsSetTime is None:
                 time.sleep(self.__interval)

@@ -21,7 +21,7 @@ class UpdateHistoryMixin(object):
     初始化
     @param tag: tag
     @param tagsHistoryPath: 操作历史的路径
-    @param operationTime: 此次操作的时间
+    @param operationTime: 此次操作的时间戳
     """
     def __init__(self, tag, tagsHistoryPath, operationTime):
         self.tag = tag
