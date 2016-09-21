@@ -12,5 +12,5 @@ fi
 export PYTHONPATH=${base_dir}
 cd ${base_dir}
 
-python src/operators/WebReloader.py
+python src/operators/webReloaders/WebReloader.py
 

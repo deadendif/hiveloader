@@ -18,7 +18,7 @@ from datetime import datetime, timedelta
 from src.parser import conf
 from src.tagDetector.TagDetector import TagDetector
 from src.tagDetector.TagDetectResult import TagDetectResult
-from src.operators.WebReloader import WebReloader
+from src.operators.webReloaders.WebReloader import WebReloader
 from src.utils.TimeLimitExecutor import TimeLimitExecutor
 
 logger = logging.getLogger('stdout')
@@ -85,15 +85,17 @@ def main(tag, tableList, hqlList, sqlList):
 
         reloader = WebReloader(tag=tag,
                                tableList=tableList,
-                               loadPathList=loadPathList,
-                               bakupPathList=bakupPathList,
                                hqlList=[hql % recordDay for hql in hqlList],
-                               sqlList=[sql % recordDay for sql in sqlList],
-                               tagsHistoryPath=conf.get('webReloader', 'tags.history.path'),
-                               operationTime=detectResult.minTagsSetTime,
+                               loadPathList=loadPathList,
                                separator=conf.get('webReloader', 'field.separator', '|'),
                                parallel=conf.getint('webReloader', 'reload.parallel'),
-                               retryTimes=conf.getint('webReloader', 'retry.time'))
+                               retryTimes=conf.getint('webReloader', 'retry.time'),
+                               bakupPathList=bakupPathList,
+                               ignore=("finishedfiles", ),
+                               connection=conf.get('webReloader', 'oracle.connection'),
+                               sqlList=[sql % recordDay for sql in sqlList],
+                               tagsHistoryPath=conf.get('webReloader', 'tags.history.path'),
+                               operationTime=detectResult.minTagsSetTime)
         if not reloader.run():
             exit(-1)
     else:
