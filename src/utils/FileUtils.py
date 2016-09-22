@@ -9,6 +9,7 @@
 '''
 
 import os
+import glob
 import shutil
 import commands
 
@@ -59,16 +60,19 @@ class FileUtils(object):
                 os.rename(path, path + "." + extension)
 
     """
-    备份目录
+    将srcDirPath目录下匹配pattern的文件备份到dstDirPath
     @param srcDirPath: 源目录
     @param dstDirPath: 备份目录
+    @param pattern: 备份的文件，支持通配符
     """
     @staticmethod
-    def backup(srcDirPath, dstDirPath, filesOnly=False, ignore=()):
+    def backup(srcDirPath, dstDirPath, pattern="*"):
         if not os.path.isdir(srcDirPath):
             return
 
-        if os.path.isdir(dstDirPath):
-            shutil.rmtree(dstDirPath)
+        if not os.path.isdir(dstDirPath):
+            os.makedirs(dstDirPath)
 
-        shutil.copytree(srcDirPath, dstDirPath, ignore=shutil.ignore_patterns(*ignore))
+        for path in glob.iglob(os.path.join(srcDirPath, pattern)):
+            if os.path.isfile(path):
+                shutil.copy(path, dstDirPath)

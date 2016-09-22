@@ -67,15 +67,14 @@ def run(tag, detailTableList, hqlList, sqlList, dtype='DAY'):
         bakupPathList = [os.path.join(bakupPath, table, recordDate) for table in tableList]
 
         reloader = WebReloader(tag=tag,
-                               date=recordDate
                                tableList=tableList,
                                hqlList=[hql % recordDate for hql in hqlList],
                                loadPathList=loadPathList,
+                               fileNamePattern=conf.get('webReloader', 'file.name.pattern') % recordDate,
                                separator=conf.get('webReloader', 'field.separator', '|'),
                                parallel=conf.getint('webReloader', 'reload.parallel'),
                                retryTimes=conf.getint('webReloader', 'retry.time'),
                                bakupPathList=bakupPathList,
-                               ignore=("finishedfiles", ),
                                connectionList=connectionList,
                                sqlList=[sql % recordDate for sql in sqlList],
                                tagsHistoryPath=conf.get('webReloader', 'tags.history.path'),
@@ -87,11 +86,12 @@ def run(tag, detailTableList, hqlList, sqlList, dtype='DAY'):
 
 """
 重跑处理流程：
-startDate和endDate为话单时间，天、月
+startDate和endDate为账单时间，天、月
 """
 def rerun(tag, detailTableList, hqlList, sqlList, startDate, endDate):
     logger.info('Running web reloader: [startDate=%s] [endDate=%s]' % (startDate, endDate))
     while startDate <= endDate:
+        logger.info("Running web reloader: [date=%s]" % startDate)
         connectionList = [dt.split(':')[0] for dt in detailTableList]
         tableList = [dt.split(':')[1].upper() for dt in detailTableList]
 
@@ -105,11 +105,11 @@ def rerun(tag, detailTableList, hqlList, sqlList, startDate, endDate):
                                tableList=tableList,
                                hqlList=[hql % startDate for hql in hqlList],
                                loadPathList=loadPathList,
+                               fileNamePattern=conf.get('webReloader', 'file.name.pattern') % recordDate,
                                separator=conf.get('webReloader', 'field.separator', '|'),
                                parallel=conf.getint('webReloader', 'reload.parallel'),
                                retryTimes=conf.getint('webReloader', 'retry.time'),
                                bakupPathList=bakupPathList,
-                               ignore=("finishedfiles", ),
                                connectionList=connectionList,
                                sqlList=[sql % startDate for sql in sqlList],
                                tagsHistoryPath=conf.get('webReloader', 'tags.history.path'),

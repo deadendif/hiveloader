@@ -8,6 +8,19 @@
 @date: 2016-09-21
 '''
 
+import logging
+
+
+logger = logging.getLogger('stdout')
+
+
+def isDayOrMonth(date):
+    return date.isdigit() and len(date) in [6,8]
+
+
+def isComparable(startDate, endDate):
+    return len(startDate) == len(endDate) and startDate <= endDate
+
 
 def validate(params):
     if len(params) not in [4, 5, 6]:
@@ -47,8 +60,7 @@ def validate(params):
             return False
 
     if len(params) == 6:
-        if not params[4].isdigit() or len(params[4]) != 8 or not params[5].isdigit() or 
-            len(params[5]) != 8 or params[4] > params[5]:
+        if not isDayOrMonth(params[4]) or not isDayOrMonth(params[5]) or not isComparable(params[4], params[5]):
             logger.error("Date format is invalid: [startDate=%s] [endDate=%s]" % (params[4], params[5]))
             return False
 

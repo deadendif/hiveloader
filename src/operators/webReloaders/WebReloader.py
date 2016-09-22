@@ -19,10 +19,10 @@ class WebReloader(JavaLoaderMixin, BackupMixin, RunSqlMixin, UpdateHistoryMixin)
 
     """
     初始化
-    @param date
     @param tableList
     @param hqlList
     @param loadPathList
+    @param fileNamePattern
     @param separator
     @param parallel
     @param retryTimes
@@ -37,11 +37,11 @@ class WebReloader(JavaLoaderMixin, BackupMixin, RunSqlMixin, UpdateHistoryMixin)
     @param tagsHistoryPath
     @param operationTime
     """
-    def __init__(self, date, tableList, hqlList, loadPathList, separator, parallel, retryTimes,
+    def __init__(self, tableList, hqlList, loadPathList, fileNamePattern, separator, parallel, retryTimes,
                  bakupPathList, ignore,
                  connectionList, sqlList,
                  tag, tagsHistoryPath, operationTime):
-        JavaLoaderMixin.__init__(self, date, tableList, hqlList, loadPathList, separator, parallel, retryTimes)
+        JavaLoaderMixin.__init__(self, tableList, hqlList, loadPathList, fileNamePattern, separator, parallel, retryTimes)
         BackupMixin.__init__(self, bakupPathList, ignore)
         RunSqlMixin.__init__(self, connectionList, sqlList)
         UpdateHistoryMixin.__init__(self, tag, tagsHistoryPath, operationTime)
@@ -54,7 +54,7 @@ class WebReloader(JavaLoaderMixin, BackupMixin, RunSqlMixin, UpdateHistoryMixin)
         if not self._load(self.tableList[i], self.loadPathList[i], self.hqlList[i]):
             return False
         # 备份数据
-        self._backup(self.loadPathList[i], self.bakupPathList[i])
+        self._backup(self.loadPathList[i], self.bakupPathList[i], self.fileNamePattern.replace('%s', '*'))
         # 执行sql，删除分区数据避免重复
         if not self._runSql(self.connectionList[i], self.sqlList[i]):
             return False
@@ -62,27 +62,3 @@ class WebReloader(JavaLoaderMixin, BackupMixin, RunSqlMixin, UpdateHistoryMixin)
         if self.operationTime is not None:
             self._updateHistory()
         return True
-
-
-if __name__ == '__main__':
-
-    import logging.config
-    from src.parser import conf
-
-    logging.config.fileConfig(conf.get('basic', 'log.conf.path'))
-
-    logger.info('Begin web reload ....')
-    wr = WebReloader(tag='10000',
-                     tableList=["QIXZ.ZZC_TEST_TABLE_ORA", ],
-                     hqlList=['SELECT IP, OS_VERSION, IMEI, DAY_ID FROM AMAPP_SDK_PEXG_LOGIN WHERE DAY_ID = 20160903', ],
-                     loadPathList=['tmp/hiveloader/LOGON/', ],
-                     separator='|',
-                     parallel=50,
-                     retryTimes=3,
-                     bakupPathList=['tmp/hiveloaderbakup/LOGON/20160903/', ],
-                     ignore=("finishedfiles", ),
-                     connection='qixz/qixz@EBBI',
-                     sqlList=['DELETE FROM QIXZ.ZZC_TEST_TABLE_ORA WHERE DAY_ID = 20160903', ],
-                     tagsHistoryPath='data/tagsHistory/',
-                     operationTime='201609041200')
-    wr.run()

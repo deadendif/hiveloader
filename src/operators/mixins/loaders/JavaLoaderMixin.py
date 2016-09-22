@@ -38,7 +38,7 @@ class JavaLoaderMixin(AbstractLoaderMixin):
         while not self._isAllowed():
             time.sleep(60)
 
-        filepath = os.path.join(loadPath, '%s_%s.txt' % (table, self.date))
+        filepath = os.path.join(loadPath, self.fileNamePattern % table)
         loadCmd = "java -jar lib/hivedownload/hivedownload-1.0-SNAPSHOT-jar-with-dependencies.jar '%s' '%s' '%s'" % (
             hql, filepath, self.separator)
         while self.retryTimes > 0:

@@ -21,12 +21,16 @@ class BackupMixin(object):
     """
     初始化
     @param bakupPath: 备份目录
-    @param ignore: 源目录下忽略的文件，支持通配符
     """
-    def __init__(self, bakupPathList, ignore=()):
+    def __init__(self, bakupPathList):
         self.bakupPathList = bakupPathList
-        self.ignore = ignore
 
-    def _backup(self, loadPath, bakupPath):
-        FileUtils.backup(loadPath, bakupPath, ignore=self.ignore)
-        logger.info("Backup data success: [loadPath=%s] [bakupPath=%s]" % (loadPath, bakupPath))
+    """
+    将loadPath目录下匹配pattern的文件备份到bakupPath
+    @param loadPath: 下载路径
+    @param bakupPath: 备份目录
+    @param pattern: 备份的文件，支持通配符
+    """
+    def _backup(self, loadPath, bakupPath, pattern='*'):
+        FileUtils.backup(loadPath, bakupPath, pattern)
+        logger.info("Backup data success: [loadPath=%s] [bakupPath=%s] [pattern=%s]" % (loadPath, bakupPath, pattern))
