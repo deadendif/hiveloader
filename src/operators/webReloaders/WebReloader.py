@@ -19,6 +19,7 @@ class WebReloader(JavaLoaderMixin, BackupMixin, RunSqlMixin, UpdateHistoryMixin)
 
     """
     初始化
+    @param date
     @param tableList
     @param hqlList
     @param loadPathList
@@ -36,11 +37,11 @@ class WebReloader(JavaLoaderMixin, BackupMixin, RunSqlMixin, UpdateHistoryMixin)
     @param tagsHistoryPath
     @param operationTime
     """
-    def __init__(self, tableList, hqlList, loadPathList, separator, parallel, retryTimes,
+    def __init__(self, date, tableList, hqlList, loadPathList, separator, parallel, retryTimes,
                  bakupPathList, ignore,
                  connectionList, sqlList,
                  tag, tagsHistoryPath, operationTime):
-        JavaLoaderMixin.__init__(self, tableList, hqlList, loadPathList, separator, parallel, retryTimes)
+        JavaLoaderMixin.__init__(self, date, tableList, hqlList, loadPathList, separator, parallel, retryTimes)
         BackupMixin.__init__(self, bakupPathList, ignore)
         RunSqlMixin.__init__(self, connectionList, sqlList)
         UpdateHistoryMixin.__init__(self, tag, tagsHistoryPath, operationTime)
@@ -58,7 +59,8 @@ class WebReloader(JavaLoaderMixin, BackupMixin, RunSqlMixin, UpdateHistoryMixin)
         if not self._runSql(self.connectionList[i], self.sqlList[i]):
             return False
         # 更新操作历史
-        self._updateHistory()
+        if self.operationTime is not None:
+            self._updateHistory()
         return True
 
 

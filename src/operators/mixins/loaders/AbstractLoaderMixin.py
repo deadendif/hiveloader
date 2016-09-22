@@ -19,6 +19,7 @@ class AbstractLoaderMixin(object):
 
     """
     初始化
+    @param date: 话单时间，天、月
     @param tableList: 表名
     @param hqlList: 下载数据执行的hql
     @param loadPathList: 下载Hive数据的存放路径
@@ -26,7 +27,8 @@ class AbstractLoaderMixin(object):
     @param parallel: 下载操作的并发数
     @param retryTimes: 下载操作最大执行次数
     """
-    def __init__(self, tableList, hqlList, loadPathList, separator, parallel, retryTimes):
+    def __init__(self, date, tableList, hqlList, loadPathList, separator, parallel, retryTimes):
+        self.date = date
         self.tableList = tableList
         self.hqlList = hqlList
         self.loadPathList = loadPathList

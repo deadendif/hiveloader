@@ -27,4 +27,8 @@ if __name__ == '__main__':
 
     # FileUtils.backup('/tmp/zzc/', '/tmp/bak', ignore=("folder", ))
 
-    print TimeUtils.tsp2time(1472478350916)
+    # print TimeUtils.tsp2time(1472478350916)
+    print TimeUtils.prev('20160922')
+    print TimeUtils.prev('201609')
+    print TimeUtils.next('20160922')
+    print TimeUtils.next('201609')

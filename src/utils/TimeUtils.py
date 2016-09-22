@@ -10,7 +10,8 @@
 
 
 import time
-import datetime
+import calendar
+from datetime import datetime, timedelta
 
 
 class TimeUtils(object):
@@ -19,10 +20,36 @@ class TimeUtils(object):
     秒级或毫秒级时间戳转成时间
     """
     @staticmethod
-    def tsp2time(tsp):
+    def tsp2time(tsp, fmt='%Y-%m-%d %H:%M:%S'):
         if len(str(tsp)) == 10:
             return time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(s))
         elif len(str(tsp)) == 13:
             s, ms = divmod(tsp, 1000)
-            return '%s.%03d' % (time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(s)), ms)
+            return '%s.%03d' % (time.strftime(fmt, time.gmtime(s)), ms)
         return None
+
+
+    """
+    返回当前时间的前一月、前一天（字符串）
+    201609 >> 201608; 20160922 >> 20160921
+    """
+    @staticmethod
+    def prev(nowDate):
+        if len(nowDate) != 8 and len(nowDate) != 6:
+            raise Exception("Wrong param format: [param=%s]" % nowDate)
+        fmt = '%Y%m%d' if len(nowDate) == 8 else '%Y%m'
+        return (datetime.strptime(nowDate, fmt) + timedelta(days=-1)).strftime(fmt)
+
+    """
+    返回当前时间的后一月、后一天（字符串）
+    201609 >> 201610; 20160922 >> 20160923
+    """
+    @staticmethod
+    def next(nowDate):
+        if len(nowDate) == 8:
+            return (datetime.strptime(nowDate, '%Y%m%d') + timedelta(days=1)).strftime('%Y%m%d')
+        elif len(nowDate) == 6:
+            now = datetime.strptime(nowDate, '%Y%m')
+            daysInMonth = calendar.monthrange(now.year, now.month)[1]
+            return (now + timedelta(days=daysInMonth)).strftime('%Y%m')
+        raise Exception("Wrong param format: [param=%s]" % nowDate)
