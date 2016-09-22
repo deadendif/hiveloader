@@ -28,7 +28,6 @@ class WebReloader(JavaLoaderMixin, BackupMixin, RunSqlMixin, UpdateHistoryMixin)
     @param retryTimes
 
     @param bakupPathList
-    @param ignore
 
     @param connectionList
     @param sqlList
@@ -38,11 +37,11 @@ class WebReloader(JavaLoaderMixin, BackupMixin, RunSqlMixin, UpdateHistoryMixin)
     @param operationTime
     """
     def __init__(self, tableList, hqlList, loadPathList, fileNamePattern, separator, parallel, retryTimes,
-                 bakupPathList, ignore,
+                 bakupPathList,
                  connectionList, sqlList,
                  tag, tagsHistoryPath, operationTime):
         JavaLoaderMixin.__init__(self, tableList, hqlList, loadPathList, fileNamePattern, separator, parallel, retryTimes)
-        BackupMixin.__init__(self, bakupPathList, ignore)
+        BackupMixin.__init__(self, bakupPathList)
         RunSqlMixin.__init__(self, connectionList, sqlList)
         UpdateHistoryMixin.__init__(self, tag, tagsHistoryPath, operationTime)
 
