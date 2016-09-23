@@ -89,7 +89,7 @@ def run(tag, detailTableList, hqlList, sqlList, dtype='DAY'):
 startDate和endDate为账单时间，天、月
 """
 def rerun(tag, detailTableList, hqlList, sqlList, startDate, endDate):
-    logger.info('Begin running web reloader batch: [startDate=%s] [endDate=%s]' % (startDate, endDate))
+    logger.info('Running web reloader: [startDate=%s] [endDate=%s]' % (startDate, endDate))
     while startDate <= endDate:
         logger.info("Running web reloader: [date=%s]" % startDate)
         connectionList = [dt.split(':')[0] for dt in detailTableList]
@@ -116,6 +116,7 @@ def rerun(tag, detailTableList, hqlList, sqlList, startDate, endDate):
                                operationTime=None)
         if not reloader.run():
             exit(-1)
+        logger.info("Run web reloader success: [date=%s]" % startDate)
         startDate = TimeUtils.next(startDate)
     logger.info("Run all web reloader success")
 
