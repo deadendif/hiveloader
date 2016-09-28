@@ -1,0 +1,18 @@
+说明：此目录存放GNU核心工具（GNU Core Utilities）。
+
+由于服务器的coreutils工具版本过低，又不能对服务器轻易升级，因此手动编译coreutils，并将用到的工具放在此目录。
+部署时需在服务器上重新编译生成，不能直接拷贝其他服务器的可执行文件。
+
+编译步骤:
+1. 下载coreutils（程序要求最低版本8.16）
+  wget http://ftp.gnu.org/gnu/coreutils/coreutils-8.24.tar.xz
+2. 解压
+  xz -d coreutils-8.24.tar.xz && tar xvf coreutils-8.24.tar
+3. 编译（非root用户）
+  cd coreutils-8.24 && ./configure && make
+4. 拷贝工具（coreutils-8.24/src目录，以split为例）
+  cp src/split <hiveloader>/lib/corutils/
+
+
+目前用到的工具:
+split: 拆分文件

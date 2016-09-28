@@ -91,7 +91,6 @@ class FileUtils(object):
             if os.path.isfile(path):
                 shutil.copy(path, dstDirPath)
 
-
     """
     给文件每行前添加行号
     @param filePath: 文件路径
@@ -138,26 +137,28 @@ class FileUtils(object):
     @param serialNoWidth: 编号位数
     """
     @staticmethod
-    def split(filePath, maxFileSize, prefix='', suffix='', serialNoWidth=3):
+    def split(filePath, maxFileSize, prefix='', suffix='', serialNoWidth=3, serialNoFrom=1, delete=True):
         if not os.path.isfile(filePath):
             return False
-            
+
         # 判断split版本
         getVersionCmd = "split --version | head -1 | awk '{print $NF}'"
         out = commands.getstatusoutput(getVersionCmd)
-        lowVersion = False
+        splitTool = 'split'
         if out[0] != 0 or not re.match('^\d.\d\d$', out[1]) or out[1] < '8.16':
-            lowVersion = True
+            splitTool = os.path.join('lib/coreutils', splitTool)
+            if not os.path.isfile(splitTool):
+                raise Exception("Core utils 'split' not installed. Please read lib/coreutils/README")
 
         prefix = int(time.time()) if prefix == '' else prefix
         dirPath = os.path.dirname(filePath)
         fileName = os.path.basename(filePath)
-        cmd = "cd %s && split -C %d -a %d %s -d '%s' '%s'" % (dirPath, maxFileSize, serialNoWidth, '' if lowVersion else "--additional-suffix '%s'" % suffix, fileName, prefix)
+        
+        cmd = "cd %s && %s -C %d -a %d --additional-suffix='%s' --numeric-suffixes=%d '%s' '%s'" % (
+            dirPath, splitTool, maxFileSize, serialNoWidth, suffix, serialNoFrom, fileName, prefix)
         if os.system(cmd) == 0:
-            os.remove(filePath)
-            if lowVersion and suffix:
-                fileNamePattern = prefix + '[0-9]' * serialNoWidth 
-                return FileUtils.addExtension(dirPath, suffix, fileNamePattern)
+            if delete:
+                os.remove(filePath)
             return True
         return False
 
