@@ -41,7 +41,7 @@ if __name__ == '__main__':
     # print FileUtils.countFilesRow('/tmp/zzc/a')
 
     # print FileUtils.merge('/tmp/zzc', 'abc', 'test*')
-    print FileUtils.split('/tmp/zzc/abc', 1024, 'test_', '.txt', 4)
+    print FileUtils.split('/tmp/zzc/abc', 1024, 'test_', '.txt', 4)  # 需要在hiveloader根目录执行
 
     # FileUtils.rmHiddenFile('/tmp/zzc')
     # print FileUtils.addExtension('/tmp/zzc/', '.txt', 'test*')

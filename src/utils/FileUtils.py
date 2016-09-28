@@ -146,7 +146,7 @@ class FileUtils(object):
         out = commands.getstatusoutput(getVersionCmd)
         splitTool = 'split'
         if out[0] != 0 or not re.match('^\d.\d\d$', out[1]) or out[1] < '8.16':
-            splitTool = os.path.join('lib/coreutils', splitTool)
+            splitTool = os.path.join(os.getcwd(), 'lib/coreutils', splitTool)
             if not os.path.isfile(splitTool):
                 raise Exception("Core utils 'split' not installed. Please read lib/coreutils/README")
 
