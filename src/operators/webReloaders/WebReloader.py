@@ -19,7 +19,7 @@ class WebReloader(JavaLoaderMixin, BackupMixin, RunSqlMixin, UpdateHistoryMixin)
 
     """
     初始化
-    @param tableList
+    @param recordDate
     @param hqlList
     @param loadPathList
     @param fileNameList
@@ -37,11 +37,11 @@ class WebReloader(JavaLoaderMixin, BackupMixin, RunSqlMixin, UpdateHistoryMixin)
     @param tagsHistoryPath
     @param operationTime
     """
-    def __init__(self, recordDate, tableList, hqlList, loadPathList, fileNameList, separator, isAddRowIndex, parallel, retryTimes,
+    def __init__(self, recordDate, hqlList, loadPathList, fileNameList, separator, isAddRowIndex, parallel, retryTimes,
                  bakupPathList,
                  connectionList, sqlList,
                  tag, tagsHistoryPath, operationTime):
-        JavaLoaderMixin.__init__(self, recordDate, tableList, hqlList, loadPathList, fileNameList, separator, isAddRowIndex, parallel, retryTimes)
+        JavaLoaderMixin.__init__(self, recordDate, hqlList, loadPathList, fileNameList, separator, isAddRowIndex, parallel, retryTimes)
         BackupMixin.__init__(self, bakupPathList)
         RunSqlMixin.__init__(self, connectionList, sqlList)
         UpdateHistoryMixin.__init__(self, tag, tagsHistoryPath, operationTime)
@@ -51,7 +51,7 @@ class WebReloader(JavaLoaderMixin, BackupMixin, RunSqlMixin, UpdateHistoryMixin)
     """
     def _run(self, i):
         # 从Hive下载数据
-        if not self._load(self.hqlList[i], self.loadPathList[i], self.tableList[i], self.fileNameList[i]):
+        if not self._load(self.hqlList[i], self.loadPathList[i], self.fileNameList[i]):
             return False
 
         # 备份数据

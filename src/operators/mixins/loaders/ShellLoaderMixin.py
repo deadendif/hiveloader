@@ -22,13 +22,6 @@ logger = logging.getLogger('stdout')
 class ShellLoaderMixin(AbstractLoaderMixin):
 
     """
-    初始化
-    """
-    def __init__(self, recordDate, tableList, hqlList, loadPathList, fileNameList, separator, isAddRowIndex, parallel, retryTimes):
-        super(ShellLoaderMixin, self).__init__(recordDate, tableList, hqlList,
-                                               loadPathList, fileNameList, separator, isAddRowIndex, parallel, retryTimes)
-
-    """
     [Overwrite] 检查hive进程数是否小于允许的并发数，即load操作是否允许执行
     """
     def _isAllowed(self):
@@ -41,7 +34,7 @@ class ShellLoaderMixin(AbstractLoaderMixin):
     """
     [Overwrite] 执行命令从Hive上下载数据
     """
-    def _load(self, hql, loadPath, table, fileName=None):
+    def _load(self, hql, loadPath, fileName):
         while not self._isAllowed():
             time.sleep(60)
 

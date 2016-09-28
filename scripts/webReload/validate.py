@@ -39,9 +39,9 @@ def validate(params):
         logger.error("Table's number is not equal to sql's number: [params=%s]" % (params[1:]))
         return False
 
-    for table in params[1].split('&'):
-        if ':' not in table:
-            logger.error("Table format is invalid: [tables=%s]" % params[1])
+    for dirName in params[1].split('&'):
+        if ':' not in dirName:
+            logger.error("Table format is invalid: [dirNames=%s]" % params[1])
             return False
 
     for hql in params[2].split('&'):

@@ -58,20 +58,19 @@ def run(tag, detailTableList, hqlList, sqlList, dtype='DAY'):
         logger.info('Running web reloader ...')
 
         connectionList = [dt.split(':')[0] for dt in detailTableList]
-        tableList = [dt.split(':')[1].upper() for dt in detailTableList]
+        dirNameList = [dt.split(':')[1].upper() for dt in detailTableList]
 
         loadPath = conf.get('webReloader', 'load.path')
-        loadPathList = [os.path.join(loadPath, table) for table in tableList]
+        loadPathList = [os.path.join(loadPath, dirName) for dirName in dirNameList]
 
         fileNamePattern = conf.get('webReloader', 'file.name.pattern') % startDate
-        fileNameList = [fileNamePattern % table for table in tableList]
+        fileNameList = [fileNamePattern % dirName for dirName in dirNameList]
 
         bakupPath = conf.get('webReloader', 'bakup.path')
-        bakupPathList = [os.path.join(bakupPath, table, recordDate) for table in tableList]
+        bakupPathList = [os.path.join(bakupPath, dirName, recordDate) for dirName in dirNameList]
 
         reloader = WebReloader(tag=tag,
                                recordDate=recordDate,
-                               tableList=tableList,
                                hqlList=[hql % recordDate for hql in hqlList],
                                loadPathList=loadPathList,
                                fileNameList=fileNameList,
@@ -98,20 +97,19 @@ def rerun(tag, detailTableList, hqlList, sqlList, startDate, endDate):
     while startDate <= endDate:
         logger.info("Running web reloader: [date=%s]" % startDate)
         connectionList = [dt.split(':')[0] for dt in detailTableList]
-        tableList = [dt.split(':')[1].upper() for dt in detailTableList]
+        dirNameList = [dt.split(':')[1].upper() for dt in detailTableList]
 
         loadPath = conf.get('webReloader', 'rerun.load.path')
-        loadPathList = [os.path.join(loadPath, table) for table in tableList]
+        loadPathList = [os.path.join(loadPath, dirName) for dirName in dirNameList]
 
         fileNamePattern = conf.get('webReloader', 'file.name.pattern') % startDate
-        fileNameList = [fileNamePattern % table for table in tableList]
+        fileNameList = [fileNamePattern % dirName for dirName in dirNameList]
 
         bakupPath = conf.get('webReloader', 'bakup.path')
-        bakupPathList = [os.path.join(bakupPath, table, startDate) for table in tableList]
+        bakupPathList = [os.path.join(bakupPath, dirName, startDate) for dirName in dirNameList]
 
         reloader = WebReloader(tag=tag,
                                recordDate=recordDate,
-                               tableList=tableList,
                                hqlList=[hql % startDate for hql in hqlList],
                                loadPathList=loadPathList,
                                fileNameList=fileNameList,

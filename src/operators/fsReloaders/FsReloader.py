@@ -21,7 +21,6 @@ class FsReloader(ShellLoaderMixin, SplitFileMixin, RunCheckerMixin, BackupMixin,
     """
     初始化
     @param recordDate
-    @param tableList
     @param hqlList
     @param loadPathList
     @param fileNameList
@@ -42,12 +41,12 @@ class FsReloader(ShellLoaderMixin, SplitFileMixin, RunCheckerMixin, BackupMixin,
     @param tagsHistoryPath
     @param operationTime
     """
-    def __init__(self, recordDate, tableList, hqlList, loadPathList, fileNameList, separator, isAddRowIndex, parallel, retryTimes,
+    def __init__(self, recordDate, hqlList, loadPathList, fileNameList, separator, isAddRowIndex, parallel, retryTimes,
                  maxFileSize, serialNoWidth,
                  checkerPath, checkerFieldSeparator,
                  bakupPathList,
                  tag, tagsHistoryPath, operationTime):
-        ShellLoaderMixin.__init__(self, recordDate, tableList, hqlList, loadPathList,
+        ShellLoaderMixin.__init__(self, recordDate, hqlList, loadPathList,
                                   fileNameList, separator, isAddRowIndex, parallel, retryTimes)
         SplitFileMixin.__init__(self, maxFileSize, serialNoWidth)
         RunCheckerMixin.__init__(self, checkerPath, checkerFieldSeparator)
@@ -59,7 +58,7 @@ class FsReloader(ShellLoaderMixin, SplitFileMixin, RunCheckerMixin, BackupMixin,
     """
     def _run(self, i):
         # 从Hive上下载数据
-        if not self._load(self.hqlList[i], self.loadPathList[i], self.tableList[i], self.fileNameList[i]):
+        if not self._load(self.hqlList[i], self.loadPathList[i], self.fileNameList[i]):
             return False
 
         # 切分文件，当maxFileSize小于等于0时，不切分文件

@@ -38,4 +38,9 @@ class SplitFileMixin(object):
         fileName = os.path.basename(filePath)
         dot = fileName.rfind('.') if '.' in fileName else len(fileName)
         prefix, suffix = fileName[:dot] + self.division, fileName[dot:]
-        return FileUtils.split(filePath, self.maxFileSize, prefix, suffix, self.serialNoWidth)
+        if not FileUtils.split(filePath, self.maxFileSize, prefix, suffix, self.serialNoWidth):
+            logger.error("Split file failed [filePath=%s] [maxFileSize=%s]" % (filePath, self.maxFileSize))
+            return False
+        logger.info("Split file success [filePath=%s] [maxFileSize=%s]" % (filePath, self.maxFileSize))
+        return True
+
