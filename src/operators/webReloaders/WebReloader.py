@@ -22,8 +22,9 @@ class WebReloader(JavaLoaderMixin, BackupMixin, RunSqlMixin, UpdateHistoryMixin)
     @param tableList
     @param hqlList
     @param loadPathList
-    @param fileNamePattern
+    @param fileNameList
     @param separator
+    @param isAddRowIndex
     @param parallel
     @param retryTimes
 
@@ -36,28 +37,32 @@ class WebReloader(JavaLoaderMixin, BackupMixin, RunSqlMixin, UpdateHistoryMixin)
     @param tagsHistoryPath
     @param operationTime
     """
-    def __init__(self, tableList, hqlList, loadPathList, fileNamePattern, separator, parallel, retryTimes,
+    def __init__(self, recordDate, tableList, hqlList, loadPathList, fileNameList, separator, isAddRowIndex, parallel, retryTimes,
                  bakupPathList,
                  connectionList, sqlList,
                  tag, tagsHistoryPath, operationTime):
-        JavaLoaderMixin.__init__(self, tableList, hqlList, loadPathList, fileNamePattern, separator, parallel, retryTimes)
+        JavaLoaderMixin.__init__(self, recordDate, tableList, hqlList, loadPathList, fileNameList, separator, isAddRowIndex, parallel, retryTimes)
         BackupMixin.__init__(self, bakupPathList)
         RunSqlMixin.__init__(self, connectionList, sqlList)
         UpdateHistoryMixin.__init__(self, tag, tagsHistoryPath, operationTime)
 
     """
-    [Overwrite AbstractLoaderMixin] 执行第i个子操作
+    [Overwrite JavaLoaderMixin] 执行第i个子操作
     """
     def _run(self, i):
         # 从Hive下载数据
-        if not self._load(self.tableList[i], self.loadPathList[i], self.hqlList[i]):
+        if not self._load(self.hqlList[i], self.loadPathList[i], self.tableList[i], self.fileNameList[i]):
             return False
+
         # 备份数据
-        self._backup(self.loadPathList[i], self.bakupPathList[i], self.fileNamePattern.replace('%s', '*'))
+        if not self._backup(self.loadPathList[i], self.bakupPathList[i], self.fileNameList[i]):
+            return False
+
         # 执行sql，删除分区数据避免重复
         if not self._runSql(self.connectionList[i], self.sqlList[i]):
             return False
-        # 更新操作历史
-        if self.operationTime is not None:
-            self._updateHistory()
+
+        # 更新操作历史，当operationTime无效时，不更新历史
+        if self.operationTime not in ['', None] and not self._updateHistory():
+            return False
         return True

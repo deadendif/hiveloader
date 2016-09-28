@@ -22,6 +22,14 @@ logger = logging.getLogger('stdout')
 class JavaLoaderMixin(AbstractLoaderMixin):
 
     """
+    初始化
+    TODO isAddRowIndex未使用
+    """
+    def __init__(self, recordDate, tableList, hqlList, loadPathList, fileNameList, separator, isAddRowIndex, parallel, retryTimes):
+        super(JavaLoaderMixin, self).__init__(recordDate, tableList, hqlList,
+                                              loadPathList, fileNameList, separator, isAddRowIndex, parallel, retryTimes)
+
+    """
     [Overwrite] 检查hive进程数是否小于允许的并发数，即load操作是否允许执行
     """
     def _isAllowed(self):
@@ -34,19 +42,20 @@ class JavaLoaderMixin(AbstractLoaderMixin):
     """
     [Overwrite] 执行命令从Hive上下载数据
     """
-    def _load(self, table, loadPath, hql):
+    def _load(self, hql, loadPath, table, fileName):
         while not self._isAllowed():
             time.sleep(60)
 
-        filepath = os.path.join(loadPath, self.fileNamePattern % table)
+        filepath = os.path.join(loadPath, fileName)
         loadCmd = "java -jar lib/hivedownload/hivedownload-1.0-SNAPSHOT-jar-with-dependencies.jar '%s' '%s' '%s'" % (
             hql, filepath, self.separator)
-        while self.retryTimes > 0:
-            self.retryTimes -= 1
-            logger.info("Executing load command: [retryTimes=%d] [cmd=%s]" % (self.retryTimes, loadCmd))
+        remainTimes = self.retryTimes
+        while remainTimes > 0:
+            remainTimes -= 1
+            logger.info("Executing load command: [remainTimes=%d] [cmd=%s]" % (remainTimes, loadCmd))
             if 0 == os.system(loadCmd):
                 logger.info("Load from hive success: [loadPath=%s] [loadRecordNum=%d]" %
-                            (loadPath, FileUtils.countFileRow(filepath)))
+                            (loadPath, FileUtils.countFilesRow(filepath)))
                 break
         else:
             logger.error("Load data from hive failed: [cmd=%s]" % loadCmd)

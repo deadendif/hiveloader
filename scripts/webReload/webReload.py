@@ -63,15 +63,20 @@ def run(tag, detailTableList, hqlList, sqlList, dtype='DAY'):
         loadPath = conf.get('webReloader', 'load.path')
         loadPathList = [os.path.join(loadPath, table) for table in tableList]
 
+        fileNamePattern = conf.get('webReloader', 'file.name.pattern') % startDate
+        fileNameList = [fileNamePattern % table for table in tableList]
+
         bakupPath = conf.get('webReloader', 'bakup.path')
         bakupPathList = [os.path.join(bakupPath, table, recordDate) for table in tableList]
 
         reloader = WebReloader(tag=tag,
+                               recordDate=recordDate,
                                tableList=tableList,
                                hqlList=[hql % recordDate for hql in hqlList],
                                loadPathList=loadPathList,
-                               fileNamePattern=conf.get('webReloader', 'file.name.pattern') % recordDate,
+                               fileNameList=fileNameList,
                                separator=conf.get('webReloader', 'field.separator', '|'),
+                               isAddRowIndex=conf.getbool('webReloader', 'is.add.row.index', False),
                                parallel=conf.getint('webReloader', 'reload.parallel'),
                                retryTimes=conf.getint('webReloader', 'retry.time'),
                                bakupPathList=bakupPathList,
@@ -98,15 +103,20 @@ def rerun(tag, detailTableList, hqlList, sqlList, startDate, endDate):
         loadPath = conf.get('webReloader', 'rerun.load.path')
         loadPathList = [os.path.join(loadPath, table) for table in tableList]
 
+        fileNamePattern = conf.get('webReloader', 'file.name.pattern') % startDate
+        fileNameList = [fileNamePattern % table for table in tableList]
+
         bakupPath = conf.get('webReloader', 'bakup.path')
         bakupPathList = [os.path.join(bakupPath, table, startDate) for table in tableList]
 
         reloader = WebReloader(tag=tag,
+                               recordDate=recordDate,
                                tableList=tableList,
                                hqlList=[hql % startDate for hql in hqlList],
                                loadPathList=loadPathList,
-                               fileNamePattern=conf.get('webReloader', 'file.name.pattern') % startDate,
+                               fileNameList=fileNameList,
                                separator=conf.get('webReloader', 'field.separator', '|'),
+                               isAddRowIndex=conf.getbool('webReloader', 'is.add.row.index', False),
                                parallel=conf.getint('webReloader', 'reload.parallel'),
                                retryTimes=conf.getint('webReloader', 'retry.time'),
                                bakupPathList=bakupPathList,
@@ -140,6 +150,7 @@ if __name__ == '__main__':
     params = list(sys.argv[1:])
     if validate(params):
         func, args = getFuncAndArgs(params)
+        logger.info("Print args: [args=%s]" % str(args))
         executor = TimeLimitExecutor(conf.getint('webReloader', 'run.timeout'), func, args=args)
         exitCode = executor.execute()
         if exitCode == 0:

@@ -52,3 +52,4 @@ class UpdateHistoryMixin(object):
                     logger.info("Folder removed: [folder=%s]" % path)
             os.mknod(newFileName)
         logger.info("Update history time success: [dirPath=%s] [operationTime=%s]" % (dirPath, self.operationTime))
+        return True

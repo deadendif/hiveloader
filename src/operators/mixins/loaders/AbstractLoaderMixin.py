@@ -19,20 +19,24 @@ class AbstractLoaderMixin(object):
 
     """
     初始化
+    @param recordDate: 账单日期
     @param tableList: 表名
     @param hqlList: 下载数据执行的hql
     @param loadPathList: 下载Hive数据的存放路径
-    @param fileNamePattern: 下载数据文件
+    @param fileNameList: 下载数据文件名
     @param separator: 分隔符
+    @param isAddRowIndex: 是否行首添加行号
     @param parallel: 下载操作的并发数
     @param retryTimes: 下载操作最大执行次数
     """
-    def __init__(self, tableList, hqlList, loadPathList, fileNamePattern, separator, parallel, retryTimes):
+    def __init__(self, tableList, hqlList, loadPathList, fileNameList, separator, isAddRowIndex, parallel, retryTimes):
+        self.recordDate = recordDate
         self.tableList = tableList
         self.hqlList = hqlList
         self.loadPathList = loadPathList
-        self.fileNamePattern = fileNamePattern
+        self.fileNameList = fileNameList
         self.separator = separator
+        self.isAddRowIndex = isAddRowIndex
         self.parallel = parallel
         self.retryTimes = retryTimes
 
@@ -63,5 +67,5 @@ class AbstractLoaderMixin(object):
     """
     [Overwrite] 执行命令从Hive上下载数据
     """
-    def _load(self, table, loadPath):
+    def _load(self, hql, loadPath, table, fileName=None):
         return True

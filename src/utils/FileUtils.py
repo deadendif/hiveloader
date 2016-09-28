@@ -10,38 +10,52 @@
 
 import os
 import glob
+import math
+import time
 import shutil
 import commands
+import fileinput
+
 
 
 class FileUtils(object):
 
     """
     统计文件行数
-    @return 不存在返回0，出错返回-1
+    @param path: 文件路径或目录路径
+    @return 不存在返回0，路径不存在返回-1，出错返回-2
     """
     @staticmethod
-    def countFileRow(path):
-        if not os.path.isfile(path):
-            return 0
+    def countFilesRow(path):
+        if os.path.isfile(path):
+            countCmd = "wc -l %s | awk '{print $1}'" % path
+        elif os.path.isdir(path):
+            countCmd = "wc -l %s/* | grep -v total | awk '{sum += $1};END {print sum}'|awk '{print $1}'" % path
+        else:
+            return -1
 
-        countCmd = "wc -l %s | grep -v total | awk '{sum += $1};END {print sum}'|awk '{print $1}'" % path
         count = commands.getstatusoutput(countCmd)[1]
         if count.isdigit():
             return int(count)
         else:
-            return -1
+            return -2
 
     """
-    删除目录下的隐藏文件
+    删除目录下的隐藏文件和目录
+    @param dirPath: 目录路径
+    @param ignoreFolder: 是否忽略隐藏目录
     """
     @staticmethod
-    def rmHiddenFile(dirPath):
+    def rmHiddenFile(dirPath, ignoreFolder=False):
         if not os.path.isdir(dirPath):
             return
 
-        rmCmd = "rm %s/.*"
-        return os.system(rmCmd) == 0
+        for path in glob.iglob('%s/.*' % dirPath):
+            if os.path.isdir(path):
+                if not ignoreFolder:
+                    shutil.rmtree(path)
+            else:
+                os.remove(path)
 
     """
     对目录下的文件添加扩展名
@@ -76,3 +90,71 @@ class FileUtils(object):
         for path in glob.iglob(os.path.join(srcDirPath, pattern)):
             if os.path.isfile(path):
                 shutil.copy(path, dstDirPath)
+
+
+    """
+    给文件每行前添加行号
+    @param filePath: 文件路径
+    @param separator: 分隔符
+    @param start: 起始行号
+    """
+    @staticmethod
+    def addRowIndex(filePath, separator, start=1):
+        if not os.path.isfile(filePath):
+            return False
+
+        for line in fileinput.input(filePath, inplace=True):
+            print str(start) + separator + line.strip('\n')
+            start += 1
+        return True
+
+    """
+    合并目录dirPath下匹配fileNamePattern的文件
+    @param dirPath: 目录
+    @param fileName: 新文件名
+    @param fileNamePattern: 文件名
+    """
+    @staticmethod
+    def merge(dirPath, fileName, fileNamePattern="*", deleteFiles=True):
+        subfiles = glob.glob(os.path.join(dirPath, fileNamePattern))
+        if len(subfiles) == 0:
+            return True
+
+        cmd = 'cat %s > %s' % (' '.join(subfiles), os.path.join(dirPath, fileName))
+        if os.system(cmd) == 0:
+            if deleteFiles:
+                for sf in subfiles:
+                    os.remove(sf)
+            return True
+        else:
+            return False
+
+    """
+    切分大文件
+    @param filePath: 文件路径
+    @param maxFileSize: 切分后文件大小的最大值，单位M
+    @param prefix: 文件名前缀
+    @param suffix: 文件名后缀
+    @param serialNoWidth: 编号位数
+    """
+    @staticmethod
+    def split(filePath, maxFileSize, prefix='', suffix='', serialNoWidth=3):
+        prefix = int(time.time()) if prefix == '' else prefix
+        dirPath = os.path.dirname(filePath)
+        cmd = "cd %s && split -C %dM -a %d --additional-suffix '%s' -d '%s' '%s'" % (dirPath, maxFileSize, serialNoWidth, suffix, filePath, prefix)
+        if os.system(cmd) == 0:
+            os.remove(filePath)
+            return True
+        return False
+
+    """
+    清空目录下的文件
+    @param dirPath: 目录路径
+    """
+    @staticmethod
+    def clean(dirPath):
+        if not os.path.isdir(dirPath):
+            return
+
+        shutil.rmtree(dirPath)
+        os.makedirs(dirPath)

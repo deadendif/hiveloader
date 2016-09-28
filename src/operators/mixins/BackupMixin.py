@@ -34,3 +34,4 @@ class BackupMixin(object):
     def _backup(self, loadPath, bakupPath, pattern='*'):
         FileUtils.backup(loadPath, bakupPath, pattern)
         logger.info("Backup data success: [loadPath=%s] [bakupPath=%s] [pattern=%s]" % (loadPath, bakupPath, pattern))
+        return True

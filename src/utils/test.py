@@ -25,10 +25,22 @@ if __name__ == '__main__':
     # exe = TimeLimitExecutor(10, t.run, args=(3, ))
     # exe.execute()
 
-    FileUtils.backup('/tmp/zzc/', '/tmp/zzc_bak', '*2016.txt')
+    # FileUtils.backup('/tmp/zzc/', '/tmp/zzc_bak', '*2016.txt')
 
     # print TimeUtils.tsp2time(1472478350916)
     # print TimeUtils.prev('20160922')
     # print TimeUtils.prev('201609')
     # print TimeUtils.next('20160922')
     # print TimeUtils.next('201609')
+
+    # FileUtils.addRowIndex('/tmp/files', '|', 10000)
+
+    # FileUtils.clean('/tmp/zzc')
+
+    # print FileUtils.countFilesRow('/tmp/zzc')
+    # print FileUtils.countFilesRow('/tmp/zzc/a')
+
+    # print FileUtils.merge('/tmp/zzc', 'abc', '147*')
+    # print FileUtils.split('/tmp/zzc/abc', 300)
+
+    FileUtils.rmHiddenFile('/tmp/zzc')
