@@ -40,7 +40,8 @@ if __name__ == '__main__':
     # print FileUtils.countFilesRow('/tmp/zzc')
     # print FileUtils.countFilesRow('/tmp/zzc/a')
 
-    # print FileUtils.merge('/tmp/zzc', 'abc', '147*')
-    # print FileUtils.split('/tmp/zzc/abc', 300)
+    # print FileUtils.merge('/tmp/zzc', 'abc', 'test*')
+    print FileUtils.split('/tmp/zzc/abc', 1024, 'test_', '.txt', 4)
 
-    FileUtils.rmHiddenFile('/tmp/zzc')
+    # FileUtils.rmHiddenFile('/tmp/zzc')
+    # print FileUtils.addExtension('/tmp/zzc/', '.txt', 'test*')

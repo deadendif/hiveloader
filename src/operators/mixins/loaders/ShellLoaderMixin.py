@@ -50,7 +50,7 @@ class ShellLoaderMixin(AbstractLoaderMixin):
         logger.info("Load path [loadPath=%s] cleaned" % loadPath)
 
         # 2. 执行shell命令下载数据
-        loadCmd = "hive -e \"insert overwrite local directory '%s' ROW FORMAT DELIMITED FIELDS TERMINATED BY '%s' '%s'\"" % (
+        loadCmd = "hive -e \"insert overwrite local directory '%s' ROW FORMAT DELIMITED FIELDS TERMINATED BY '%s' %s\"" % (
             loadPath, self.separator, hql)
         remainTimes = self.retryTimes
         while remainTimes > 0:
@@ -71,7 +71,7 @@ class ShellLoaderMixin(AbstractLoaderMixin):
             logger.info("Merge load file success [loadPath=%s] [fileName=%s]" % (loadPath, fileName))
             filePath = os.path.join(loadPath, fileName)
             if self.isAddRowIndex:
-                if FileUtils.addRowIndex(filePath):
+                if FileUtils.addRowIndex(filePath, self.separator):
                     logger.info("Add row index to file success [filePath=%s]" % filePath)
                 else:
                     logger.error("Add row index to file failed [filePath=%s]" % filePath)

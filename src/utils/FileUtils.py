@@ -9,13 +9,13 @@
 '''
 
 import os
+import re
 import glob
 import math
 import time
 import shutil
 import commands
 import fileinput
-
 
 
 class FileUtils(object):
@@ -58,20 +58,20 @@ class FileUtils(object):
                 os.remove(path)
 
     """
-    对目录下的文件添加扩展名
+    对dirPath目录下的匹配fileNamePattern的文件添加扩展名extension
     @param dirPath: 目录路径
-    @param extension: 扩展名
+    @param extension: 扩展名，如 '.txt'
+    @param fileNamePattern: 通配符表达式
     """
     @staticmethod
-    def addExtension(dirPath, extension):
+    def addExtension(dirPath, extension, fileNamePattern='*', filesOnly=True):
         if not os.path.isdir(dirPath):
-            return
+            return False
 
-        files = os.listdir(dirPath)
-        for fl in files:
-            path = os.path.join(dirPath, fl)
-            if os.path.isfile(path):
-                os.rename(path, path + "." + extension)
+        for path in glob.iglob(os.path.join(dirPath, fileNamePattern)):
+            if not (filesOnly and not os.path.isfile(path)):
+                os.rename(path, path + extension)
+        return True
 
     """
     将srcDirPath目录下匹配pattern的文件备份到dstDirPath
@@ -130,20 +130,34 @@ class FileUtils(object):
             return False
 
     """
-    切分大文件
+    切分大文件，判断服务器split高低版本，v8.16及以上版本才有--additional-suffix选项
     @param filePath: 文件路径
-    @param maxFileSize: 切分后文件大小的最大值，单位M
+    @param maxFileSize: 切分后文件大小的最大值，单位:字节
     @param prefix: 文件名前缀
     @param suffix: 文件名后缀
     @param serialNoWidth: 编号位数
     """
     @staticmethod
     def split(filePath, maxFileSize, prefix='', suffix='', serialNoWidth=3):
+        if not os.path.isfile(filePath):
+            return False
+            
+        # 判断split版本
+        getVersionCmd = "split --version | head -1 | awk '{print $NF}'"
+        out = commands.getstatusoutput(getVersionCmd)
+        lowVersion = False
+        if out[0] != 0 or not re.match('^\d.\d\d$', out[1]) or out[1] < '8.16':
+            lowVersion = True
+
         prefix = int(time.time()) if prefix == '' else prefix
         dirPath = os.path.dirname(filePath)
-        cmd = "cd %s && split -C %dM -a %d --additional-suffix '%s' -d '%s' '%s'" % (dirPath, maxFileSize, serialNoWidth, suffix, filePath, prefix)
+        fileName = os.path.basename(filePath)
+        cmd = "cd %s && split -C %d -a %d %s -d '%s' '%s'" % (dirPath, maxFileSize, serialNoWidth, '' if lowVersion else "--additional-suffix '%s'" % suffix, fileName, prefix)
         if os.system(cmd) == 0:
             os.remove(filePath)
+            if lowVersion and suffix:
+                fileNamePattern = prefix + '[0-9]' * serialNoWidth 
+                return FileUtils.addExtension(dirPath, suffix, fileNamePattern)
             return True
         return False
 

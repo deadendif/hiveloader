@@ -8,6 +8,7 @@
 @date: 2016-09-26
 '''
 
+import os
 import logging
 from src.operators.mixins import *
 

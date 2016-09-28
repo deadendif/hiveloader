@@ -29,7 +29,7 @@ class AbstractLoaderMixin(object):
     @param parallel: 下载操作的并发数
     @param retryTimes: 下载操作最大执行次数
     """
-    def __init__(self, tableList, hqlList, loadPathList, fileNameList, separator, isAddRowIndex, parallel, retryTimes):
+    def __init__(self, recordDate, tableList, hqlList, loadPathList, fileNameList, separator, isAddRowIndex, parallel, retryTimes):
         self.recordDate = recordDate
         self.tableList = tableList
         self.hqlList = hqlList
