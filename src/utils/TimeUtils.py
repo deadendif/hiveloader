@@ -28,7 +28,6 @@ class TimeUtils(object):
             return '%s.%03d' % (time.strftime(fmt, time.gmtime(s)), ms)
         return None
 
-
     """
     返回当前时间的前一月、前一天（字符串）
     201609 >> 201608; 20160922 >> 20160921
@@ -53,3 +52,27 @@ class TimeUtils(object):
             daysInMonth = calendar.monthrange(now.year, now.month)[1]
             return (now + timedelta(days=daysInMonth)).strftime('%Y%m')
         raise Exception("Wrong param format: [param=%s]" % nowDate)
+
+    """
+    返回字符串是否为天日期或月日期
+    @param date: 日期字符串
+    """
+    @staticmethod
+    def isDayOrMonth(date):
+        if not date.isdigit() or len(date) not in [6, 8]:
+            return False
+
+        try:
+            datetime.strptime(date, '%Y%m' if len(date) == 6 else '%Y%m%d')
+        except Exception, e:
+            return False
+        else:
+            return True
+
+    """
+    判断字符串是否为天日期或月日期且可比较
+    """
+    @staticmethod
+    def isComparable(startDate, endDate):
+        return len(startDate) == len(endDate) and TimeUtils.isDayOrMonth(startDate) \
+                and TimeUtils.isDayOrMonth(endDate) and startDate <= endDate

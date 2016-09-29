@@ -26,36 +26,30 @@ from validate import validate
 logger = logging.getLogger('stdout')
 
 
-"""
-将tag所属日期转化成对应的账单日期
-"""
 def toRecordDate(day, dtype):
+    """ 将tag所属日期转化成对应的账单日期 """
+
     recordDateTime = datetime.strptime(day, '%Y%m%d')
     return TimeUtils.prev(recordDateTime.strftime('%Y%m' if dtype == 'MONTH' else '%Y%m%d'))
 
-"""
-正常处理流程：
-1. 检测tag近duration天内继上次回导后，是否检测到新生成(新生成包含首次生成和重跑生成)
-   若有，则返回近duration天内新生成中最旧的那个tag信息，否则脚本退出
-2. 根据tag信息（tag生成时间戳、tag所属日期目录）从Hive中导出数据到本地，同时备份数据，执行SQL
-3. 最后更新该tag此次回导操作的历史时间记录
-"""
+
 def run(tag, detailTableList, hqlList, sqlList, dtype='DAY'):
+    """ 定时执行 """
+
     logger.info("Running tag detector ...")
-    detector = TagDetector(tag=tag,
-                           duration=conf.getint('basic', 'sync.duration'),
-                           tagsSetPath=conf.get('basic', 'fs.tags.path'),
-                           tagsHistoryPath=conf.get('webReloader', 'tags.history.path'),
-                           times=conf.getint('tagDetector', 'detect.times'),
-                           interval=conf.getint('tagDetector', 'detect.interval'))
+    detector = TagDetector(
+        tag=tag,
+        duration=conf.getint('basic', 'sync.duration'),
+        tagsSetPath=conf.get('basic', 'fs.tags.path'),
+        tagsHistoryPath=conf.get('webReloader', 'tags.history.path'),
+        times=conf.getint('tagDetector', 'detect.times'),
+        interval=conf.getint('tagDetector', 'detect.interval'))
     detectResult = detector.detect()
     logger.info('Detect result: %s' % str(detectResult))
 
     if detectResult.hasDetected:
         # 话单时间
         recordDate = toRecordDate(detectResult.minTagsSetTimeDate, dtype)
-        
-        logger.info('Running web reloader ...')
 
         connectionList = [dt.split(':')[0] for dt in detailTableList]
         dirNameList = [dt.split(':')[1].upper() for dt in detailTableList]
@@ -69,30 +63,31 @@ def run(tag, detailTableList, hqlList, sqlList, dtype='DAY'):
         bakupPath = conf.get('webReloader', 'bakup.path')
         bakupPathList = [os.path.join(bakupPath, dirName, recordDate) for dirName in dirNameList]
 
-        reloader = WebReloader(tag=tag,
-                               recordDate=recordDate,
-                               hqlList=[hql % recordDate for hql in hqlList],
-                               loadPathList=loadPathList,
-                               fileNameList=fileNameList,
-                               separator=conf.get('webReloader', 'field.separator', '|'),
-                               isAddRowIndex=conf.getbool('webReloader', 'is.add.row.index', False),
-                               parallel=conf.getint('webReloader', 'reload.parallel'),
-                               retryTimes=conf.getint('webReloader', 'retry.time'),
-                               bakupPathList=bakupPathList,
-                               connectionList=connectionList,
-                               sqlList=[sql % recordDate for sql in sqlList],
-                               tagsHistoryPath=conf.get('webReloader', 'tags.history.path'),
-                               operationTime=detectResult.minTagsSetTime)
+        logger.info('Running web reloader ... [recordDate=%s]' % recordDate)
+        reloader = WebReloader(
+            tag=tag,
+            recordDate=recordDate,
+            hqlList=[hql % recordDate for hql in hqlList],
+            loadPathList=loadPathList,
+            fileNameList=fileNameList,
+            separator=conf.get('webReloader', 'field.separator', '|'),
+            isAddRowIndex=False,
+            parallel=conf.getint('webReloader', 'reload.parallel'),
+            retryTimes=conf.getint('webReloader', 'retry.time'),
+            bakupPathList=bakupPathList,
+            connectionList=connectionList,
+            sqlList=[sql % recordDate for sql in sqlList],
+            tagsHistoryPath=conf.get('webReloader', 'tags.history.path'),
+            operationTime=detectResult.minTagsSetTime)
         if not reloader.run():
             exit(-1)
     else:
         logger.info("No need to run web reloader because of no tag detected")
 
-"""
-重跑处理流程：
-startDate和endDate为账单时间，天、月
-"""
+
 def rerun(tag, detailTableList, hqlList, sqlList, startDate, endDate):
+    """ 手动重跑，startDate和endDate为账单时间，天、月 """
+
     logger.info('Running web reloader: [startDate=%s] [endDate=%s]' % (startDate, endDate))
     while startDate <= endDate:
         logger.info("Running web reloader: [date=%s]" % startDate)
@@ -108,38 +103,39 @@ def rerun(tag, detailTableList, hqlList, sqlList, startDate, endDate):
         bakupPath = conf.get('webReloader', 'bakup.path')
         bakupPathList = [os.path.join(bakupPath, dirName, startDate) for dirName in dirNameList]
 
-        reloader = WebReloader(tag=tag,
-                               recordDate=recordDate,
-                               hqlList=[hql % startDate for hql in hqlList],
-                               loadPathList=loadPathList,
-                               fileNameList=fileNameList,
-                               separator=conf.get('webReloader', 'field.separator', '|'),
-                               isAddRowIndex=conf.getbool('webReloader', 'is.add.row.index', False),
-                               parallel=conf.getint('webReloader', 'reload.parallel'),
-                               retryTimes=conf.getint('webReloader', 'retry.time'),
-                               bakupPathList=bakupPathList,
-                               connectionList=connectionList,
-                               sqlList=[sql % startDate for sql in sqlList],
-                               tagsHistoryPath=conf.get('webReloader', 'tags.history.path'),
-                               operationTime=None)
+        reloader = WebReloader(
+            tag=tag,
+            recordDate=recordDate,
+            hqlList=[hql % startDate for hql in hqlList],
+            loadPathList=loadPathList,
+            fileNameList=fileNameList,
+            separator=conf.get('webReloader', 'field.separator', '|'),
+            isAddRowIndex=False,
+            parallel=conf.getint('webReloader', 'reload.parallel'),
+            retryTimes=conf.getint('webReloader', 'retry.time'),
+            bakupPathList=bakupPathList,
+            connectionList=connectionList,
+            sqlList=[sql % startDate for sql in sqlList],
+            tagsHistoryPath=conf.get('webReloader', 'tags.history.path'),
+            operationTime=None)
         if not reloader.run():
             exit(-1)
         logger.info("Run web reloader success: [date=%s]" % startDate)
         startDate = TimeUtils.next(startDate)
     logger.info("Run all web reloader success")
 
-"""
-根据参数判断执行的函数，并解析参数
-"""
+
 def getFuncAndArgs(args):
+    """ 根据参数判断执行的函数，并解析参数 """
+
     for i in [1, 2, 3]:
         args[i] = args[i].split('&')
 
     if len(args) == 5:
         args[4] = args[4].upper()
 
-    paramsFuncMap = { 4: run,  5: run,  6: rerun }
-    return paramsFuncMap[len(args)], tuple(args)
+    argsFuncMap = {4: run, 5: run, 6: rerun}
+    return argsFuncMap[len(args)], tuple(args)
 
 
 if __name__ == '__main__':
@@ -148,7 +144,7 @@ if __name__ == '__main__':
     params = list(sys.argv[1:])
     if validate(params):
         func, args = getFuncAndArgs(params)
-        logger.info("Print args: [args=%s]" % str(args))
+        logger.info("Print func and args: [func=%s] [args=%s]" % (func.__name__, str(args)))
         executor = TimeLimitExecutor(conf.getint('webReloader', 'run.timeout'), func, args=args)
         exitCode = executor.execute()
         if exitCode == 0:
@@ -160,4 +156,5 @@ if __name__ == '__main__':
             logger.error("Execute web reload failed: [exitCode=%s]" % str(exitCode))
             exit(-1)
     else:
+        logger.error("Params validation failed")
         exit(-1)

@@ -59,7 +59,7 @@ class ShellLoaderMixin(AbstractLoaderMixin):
         # 3. 删除无效的隐藏文件
         FileUtils.rmHiddenFile(loadPath)
         logger.info("Hidden files removed [loadPath=%s]" % loadPath)
-        # 4. 合并文件
+        # 4. 合并文件，只合并刚下载的文件，用通配符'[_0-9]*'匹配
         if FileUtils.merge(loadPath, fileName):
             logger.info("Merge load file success [loadPath=%s] [fileName=%s]" % (loadPath, fileName))
             filePath = os.path.join(loadPath, fileName)
