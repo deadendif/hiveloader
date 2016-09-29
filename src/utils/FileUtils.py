@@ -41,23 +41,6 @@ class FileUtils(object):
             return -2
 
     """
-    删除目录下的隐藏文件和目录
-    @param dirPath: 目录路径
-    @param ignoreFolder: 是否忽略隐藏目录
-    """
-    @staticmethod
-    def rmHiddenFile(dirPath, ignoreFolder=False):
-        if not os.path.isdir(dirPath):
-            return
-
-        for path in glob.iglob('%s/.*' % dirPath):
-            if os.path.isdir(path):
-                if not ignoreFolder:
-                    shutil.rmtree(path)
-            else:
-                os.remove(path)
-
-    """
     对dirPath目录下的匹配fileNamePattern的文件添加扩展名extension
     @param dirPath: 目录路径
     @param extension: 扩展名，如 '.txt'
@@ -115,7 +98,7 @@ class FileUtils(object):
     """
     @staticmethod
     def merge(dirPath, fileName, fileNamePattern="*", deleteFiles=True):
-        subfiles = glob.glob(os.path.join(dirPath, fileNamePattern))
+        subfiles = [sf for sf in glob.glob(os.path.join(dirPath, fileNamePattern)) if os.path.isfile(sf)]
         if len(subfiles) == 0:
             return True
 
@@ -163,13 +146,40 @@ class FileUtils(object):
         return False
 
     """
-    清空目录下的文件
+    删除目录下匹配fileNamePattern的文件
     @param dirPath: 目录路径
+    @param fileNamePattern: 文件通配符
+    @param ignoreFolder: 是否忽略目录
     """
     @staticmethod
-    def clean(dirPath):
+    def remove(dirPath, fileNamePattern='*', ignoreFolder=False):
         if not os.path.isdir(dirPath):
-            return
+            return False
 
-        shutil.rmtree(dirPath)
-        os.makedirs(dirPath)
+        for path in glob.iglob(os.path.join(dirPath, fileNamePattern)):
+            if os.path.isdir(path):
+                if not ignoreFolder:
+                    shutil.rmtree(path)
+            else:
+                os.remove(path)
+        return True
+
+    """
+    删除目录下的隐藏文件和目录
+    @param dirPath: 目录路径
+    @param ignoreFolder: 是否忽略隐藏目录
+    """
+    @staticmethod
+    def rmHiddenFile(dirPath, ignoreFolder=False):
+        return FileUtils.remove(dirPath, '.*', ignoreFolder)
+
+    """
+    返回文件名中的文件主名和扩展名
+    hiveloader.txt > hiveloader; hiveloader > hiveloader
+    @param fileName: 文件名
+    @return 文件主名，扩展名
+    """
+    @staticmethod
+    def getNames(fileName):
+        dot = fileName.rfind('.') if '.' in fileName else len(fileName)
+        return fileName[:dot], fileName[dot:]

@@ -9,6 +9,7 @@
 '''
 
 import os
+import time
 import logging
 import commands
 
@@ -22,21 +23,11 @@ logger = logging.getLogger('stdout')
 class JavaLoaderMixin(AbstractLoaderMixin):
 
     """
-    [Overwrite] 检查hive进程数是否小于允许的并发数，即load操作是否允许执行
-    """
-    def _isAllowed(self):
-        getProcessCountCmd = "jps -ml | awk '{print $2}' | grep \"hivedownload\" | wc -l"
-        count = int(commands.getstatusoutput(getProcessCountCmd)[1].strip())
-        logger.info("Get hive process count: [cmd=%s] [limit=%d] [count=%d]" %
-                    (getProcessCountCmd, self.parallel, count))
-        return count < self.parallel
-
-    """
     [Overwrite] 执行命令从Hive上下载数据
     """
     def _load(self, hql, loadPath, fileName):
-        while not self._isAllowed():
-            time.sleep(60)
+        if not self._isAllowed("jps -ml | awk '{print $2}' | grep \"hivedownload\" | wc -l"):
+            return False
 
         filepath = os.path.join(loadPath, fileName)
         loadCmd = "java -jar lib/hivedownload/hivedownload-1.0-SNAPSHOT-jar-with-dependencies.jar '%s' '%s' '%s'" % (

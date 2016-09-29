@@ -10,7 +10,9 @@
 
 import os
 import logging
+
 from src.operators.mixins import *
+from src.utils.FileUtils import FileUtils
 
 
 logger = logging.getLogger('stdout')
@@ -66,9 +68,11 @@ class FsReloader(ShellLoaderMixin, SplitFileMixin, RunCheckerMixin, BackupMixin,
             return False
 
         # 生成校验文件, 当checkerPath无效时，不生成校验文件
-        checkFileName = self._createCheckFileName(self.fileNameList[i])
-        if self.checkerPath not in ['', None] and not self._check(self.loadPathList[i], checkFileName, self.recordDate):
-            return False
+        if self.checkerPath not in ['', None]:
+            mainName = FileUtils.getNames(self.fileNameList[i])[0]
+            fileNamePattern, checkFileName =  mainName + '*', mainName + '.verf'
+            if not self._check(self.loadPathList[i], fileNamePattern, checkFileName, self.recordDate):
+                return False
 
         # 备份，当bakupPathList无效时，不备份文件
         if self.bakupPathList not in [[], None] and not self._backup(self.loadPathList[i], self.bakupPathList[i]):
@@ -78,11 +82,3 @@ class FsReloader(ShellLoaderMixin, SplitFileMixin, RunCheckerMixin, BackupMixin,
         if self.operationTime not in ['', None] and not self._updateHistory():
             return False
         return True
-
-    """
-    根据文件名生成对应的校验文件名
-    @param fileName: 文件名
-    """
-    def _createCheckFileName(self, fileName):
-        dot = fileName.rfind('.') if '.' in fileName else len(fileName)
-        return fileName[:dot] + '.verf'

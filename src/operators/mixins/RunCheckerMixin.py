@@ -31,13 +31,12 @@ class RunCheckerMixin(object):
     @param loadPath: 数据文件所在路径
     @param recordDate: 数据文件的账单时间
     """
-    def _check(self, loadPath, checkFileName, recordDate):
-        cmd = "bash %s '%s' '%s' '%s' '%s'" % (self.checkerPath, loadPath, checkFileName,
-                                               self.checkerFieldSeparator, recordDate)
+    def _check(self, loadPath, fileNamePattern, checkFileName, recordDate):
+        cmd = "bash %s '%s' '%s' '%s' '%s' '%s'" % (
+            self.checkerPath, loadPath, fileNamePattern, checkFileName, self.checkerFieldSeparator, recordDate)
         out = commands.getstatusoutput(cmd)
         if out[0] != 0:
-            logger.error("Run checker failed [checkerPath=%s] [loadPath=%s], error: %s" %
-                         (self.checkerPath, loadPath, str(out[1])))
+            logger.error("Run checker failed [cmd=%s], error: %s" % (cmd, str(out[1])))
             return False
         logger.info("Run checker success [checkerPath=%s] [loadPath=%s] [checkFileName=%s]" % (
             self.checkerPath, loadPath, checkFileName))

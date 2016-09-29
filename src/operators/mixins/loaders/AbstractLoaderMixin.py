@@ -9,7 +9,9 @@
 '''
 
 import os
+import time
 import logging
+import commands
 
 
 logger = logging.getLogger('stdout')
@@ -51,18 +53,38 @@ class AbstractLoaderMixin(object):
         return True
 
     """
+    load操作是否允许执行
+    @param getProcessCountCmd: 获取hive进程数的shell命令
+    @return hive进程数是否小于允许的并发数
+    """
+    def _isAllowed(self, getProcessCountCmd):
+        remainTimes = self.retryTimes
+        while remainTimes > 0:
+            try:
+                out = commands.getstatusoutput(getProcessCountCmd)
+                if out[0] == 0:
+                    count = int(out[1].strip())
+                    logger.info("Get hive process count: [cmd=%s] [limit=%d] [count=%d]" %
+                                (getProcessCountCmd, self.parallel, count))
+                    if count < self.parallel:
+                        return True
+                else:
+                    logger.error("Get hive process count exception [cmd=%s] [remainTimes=%d], error: %s" % (
+                        getProcessCountCmd, remainTimes, out[1]))
+            except Exception, e:
+                logger.error("Get hive process count exception [cmd=%s] [remainTimes=%d], error: %s" % (
+                    getProcessCountCmd, remainTimes, str(e)))
+            remainTimes -= 1
+            time.sleep(60)
+        logger.error("Get hive process count failed after retry %d times" % self.retryTimes)
+        return False
+
+    """
     [Overwrite] 执行第i个子操作
     @param i: 下标
     @return 是否执行成功
     """
     def _run(self, i):
-        return True
-
-    """
-    [Overwrite] load操作是否允许执行
-    @return hive进程数是否小于允许的并发数
-    """
-    def _isAllowed(self):
         return True
 
     """
