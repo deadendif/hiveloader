@@ -57,7 +57,7 @@ def run(tag, detailTableList, hqlList, sqlList, dtype='DAY'):
         loadPath = conf.get('webReloader', 'load.path')
         loadPathList = [os.path.join(loadPath, dirName) for dirName in dirNameList]
 
-        fileNamePattern = conf.get('webReloader', 'file.name.pattern') % startDate
+        fileNamePattern = conf.get('webReloader', 'file.name.pattern') % recordDate
         fileNameList = [fileNamePattern % dirName for dirName in dirNameList]
 
         bakupPath = conf.get('webReloader', 'bakup.path')
@@ -105,7 +105,7 @@ def rerun(tag, detailTableList, hqlList, sqlList, startDate, endDate):
 
         reloader = WebReloader(
             tag=tag,
-            recordDate=recordDate,
+            recordDate=startDate,
             hqlList=[hql % startDate for hql in hqlList],
             loadPathList=loadPathList,
             fileNameList=fileNameList,
