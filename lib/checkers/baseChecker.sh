@@ -73,7 +73,7 @@ function getFileSize() {
 # @param $1: 数据文件路径
 # @echo 文件行数
 function getFileLines() {
-    echo $(wc -l $1)
+    echo $(wc -l $1 | awk '{print $1}')
 }
 
 

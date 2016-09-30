@@ -66,6 +66,7 @@ def run(tag, detailTableList, hqlList, sqlList, dtype='DAY'):
         logger.info('Running web reloader ... [recordDate=%s]' % recordDate)
         reloader = WebReloader(
             tag=tag,
+            loadCmd=conf.get('coreHiveLoader', 'java.load.cmd'),
             recordDate=recordDate,
             hqlList=[hql % recordDate for hql in hqlList],
             loadPathList=loadPathList,
@@ -105,6 +106,7 @@ def rerun(tag, detailTableList, hqlList, sqlList, startDate, endDate):
 
         reloader = WebReloader(
             tag=tag,
+            loadCmd=conf.get('coreHiveLoader', 'java.load.cmd'),
             recordDate=startDate,
             hqlList=[hql % startDate for hql in hqlList],
             loadPathList=loadPathList,

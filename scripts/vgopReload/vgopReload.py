@@ -56,6 +56,7 @@ def run(tag, hqlList, dirNameList, fileNameList, maxFileSize, serialNoWidth,
         logger.info('Running vgop reloader ... [recordDate=%s]' % recordDate)
         reloader = FsReloader(
             tag=tag,
+            loadCmd=conf.get('coreHiveLoader', 'shell.load.cmd'),
             recordDate=recordDate,
             hqlList=[hql.replace('%s', recordDate) for hql in hqlList],
             loadPathList=loadPathList,

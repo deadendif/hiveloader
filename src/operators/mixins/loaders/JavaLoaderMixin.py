@@ -30,8 +30,7 @@ class JavaLoaderMixin(AbstractLoaderMixin):
             return False
 
         filepath = os.path.join(loadPath, fileName)
-        loadCmd = "java -jar lib/hivedownload/hivedownload-1.0-SNAPSHOT-jar-with-dependencies.jar '%s' '%s' '%s'" % (
-            hql, filepath, self.separator)
+        loadCmd = self.loadCmd % (hql, filepath, self.separator)
         remainTimes = self.retryTimes
         while remainTimes > 0:
             remainTimes -= 1

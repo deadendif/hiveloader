@@ -10,15 +10,21 @@ Web回导: 从Hive上下载数据，并为后序入Oracle库做准备
 
 import logging
 from src.operators.mixins import *
+from src.parser import WEB_RELOADER_LOADER_BASE
+from src.utils.DynamicClassLoader import DynamicClassLoader
 
 
 logger = logging.getLogger('stdout')
 
 
-class WebReloader(JavaLoaderMixin, BackupMixin, RunSqlMixin, UpdateHistoryMixin):
+class WebReloader(DynamicClassLoader.load(WEB_RELOADER_LOADER_BASE),
+                  BackupMixin,
+                  RunSqlMixin,
+                  UpdateHistoryMixin):
 
     """
     初始化
+    @param loadCmd
     @param recordDate
     @param hqlList
     @param loadPathList
@@ -37,11 +43,11 @@ class WebReloader(JavaLoaderMixin, BackupMixin, RunSqlMixin, UpdateHistoryMixin)
     @param tagsHistoryPath
     @param operationTime
     """
-    def __init__(self, recordDate, hqlList, loadPathList, fileNameList, separator, isAddRowIndex, parallel, retryTimes,
-                 bakupPathList,
-                 connectionList, sqlList,
+    def __init__(self, loadCmd, recordDate, hqlList, loadPathList, fileNameList, separator,
+                 isAddRowIndex, parallel, retryTimes, bakupPathList, connectionList, sqlList,
                  tag, tagsHistoryPath, operationTime):
-        JavaLoaderMixin.__init__(self, recordDate, hqlList, loadPathList, fileNameList, separator, isAddRowIndex, parallel, retryTimes)
+        super(WebReloader, self).__init__(loadCmd, recordDate, hqlList, loadPathList,
+                                 fileNameList, separator, isAddRowIndex, parallel, retryTimes)
         BackupMixin.__init__(self, bakupPathList)
         RunSqlMixin.__init__(self, connectionList, sqlList)
         UpdateHistoryMixin.__init__(self, tag, tagsHistoryPath, operationTime)

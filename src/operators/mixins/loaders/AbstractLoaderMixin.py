@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 '''
-核心下载
+核心下载抽象类
 
 @author: zhangzichao
 @date: 2016-09-20
@@ -21,6 +21,7 @@ class AbstractLoaderMixin(object):
 
     """
     初始化
+    @param loadCmd: 下载数据的命令
     @param recordDate: 账单日期
     @param hqlList: 下载数据执行的hql
     @param loadPathList: 下载Hive数据的存放路径
@@ -30,7 +31,9 @@ class AbstractLoaderMixin(object):
     @param parallel: 下载操作的并发数
     @param retryTimes: 下载操作最大执行次数
     """
-    def __init__(self, recordDate, hqlList, loadPathList, fileNameList, separator, isAddRowIndex, parallel, retryTimes):
+    def __init__(self, loadCmd, recordDate, hqlList, loadPathList, fileNameList, separator,
+                 isAddRowIndex, parallel, retryTimes):
+        self.loadCmd = loadCmd
         self.recordDate = recordDate
         self.hqlList = hqlList
         self.loadPathList = loadPathList
@@ -69,11 +72,10 @@ class AbstractLoaderMixin(object):
                     if count < self.parallel:
                         return True
                 else:
-                    logger.error("Get hive process count exception [cmd=%s] [remainTimes=%d], error: %s" % (
-                        getProcessCountCmd, remainTimes, out[1]))
+                    raise Exception("Run command failed %s" % str(out[1]))
             except Exception, e:
-                logger.error("Get hive process count exception [cmd=%s] [remainTimes=%d], error: %s" % (
-                    getProcessCountCmd, remainTimes, str(e)))
+                logger.error("Get hive process count exception [cmd=%s] [remainTimes=%d], error: %s" %
+                             (getProcessCountCmd, remainTimes, str(e)))
             remainTimes -= 1
             time.sleep(60)
         logger.error("Get hive process count failed after retry %d times" % self.retryTimes)

@@ -12,16 +12,23 @@ import os
 import logging
 
 from src.operators.mixins import *
+from src.parser import FS_RELOADER_LOADER_BASE
 from src.utils.FileUtils import FileUtils
+from src.utils.DynamicClassLoader import DynamicClassLoader
 
 
 logger = logging.getLogger('stdout')
 
 
-class FsReloader(ShellLoaderMixin, SplitFileMixin, RunCheckerMixin, BackupMixin, UpdateHistoryMixin):
+class FsReloader(DynamicClassLoader.load(FS_RELOADER_LOADER_BASE),
+                 SplitFileMixin,
+                 RunCheckerMixin,
+                 BackupMixin,
+                 UpdateHistoryMixin):
 
     """
     初始化
+    @param loadCmd
     @param recordDate
     @param hqlList
     @param loadPathList
@@ -43,12 +50,10 @@ class FsReloader(ShellLoaderMixin, SplitFileMixin, RunCheckerMixin, BackupMixin,
     @param tagsHistoryPath
     @param operationTime
     """
-    def __init__(self, recordDate, hqlList, loadPathList, fileNameList, separator, isAddRowIndex, parallel, retryTimes,
-                 maxFileSize, serialNoWidth,
-                 checkerPath, checkerFieldSeparator,
-                 bakupPathList,
-                 tag, tagsHistoryPath, operationTime):
-        ShellLoaderMixin.__init__(self, recordDate, hqlList, loadPathList,
+    def __init__(self, loadCmd, recordDate, hqlList, loadPathList, fileNameList, separator, isAddRowIndex,
+                 parallel, retryTimes, maxFileSize, serialNoWidth, checkerPath, checkerFieldSeparator,
+                 bakupPathList, tag, tagsHistoryPath, operationTime):
+        super(FsReloader, self).__init__(loadCmd, recordDate, hqlList, loadPathList,
                                   fileNameList, separator, isAddRowIndex, parallel, retryTimes)
         SplitFileMixin.__init__(self, maxFileSize, serialNoWidth)
         RunCheckerMixin.__init__(self, checkerPath, checkerFieldSeparator)
@@ -70,7 +75,7 @@ class FsReloader(ShellLoaderMixin, SplitFileMixin, RunCheckerMixin, BackupMixin,
         # 生成校验文件, 当checkerPath无效时，不生成校验文件
         if self.checkerPath not in ['', None]:
             mainName = FileUtils.getNames(self.fileNameList[i])[0]
-            fileNamePattern, checkFileName =  mainName + '*', mainName + '.verf'
+            fileNamePattern, checkFileName = mainName + '*', mainName + '.verf'
             if not self._check(self.loadPathList[i], fileNamePattern, checkFileName, self.recordDate):
                 return False
 

@@ -34,8 +34,7 @@ class ShellLoaderMixin(AbstractLoaderMixin):
 
         # 2. 执行shell命令下载数据
         tmpLoadPath = os.path.join(loadPath, '.tmp')
-        loadCmd = "hive -e \"insert overwrite local directory '%s' ROW FORMAT DELIMITED FIELDS TERMINATED BY '%s' %s\"" % (
-            tmpLoadPath, self.separator, hql)
+        loadCmd = self.loadCmd % (tmpLoadPath, self.separator, hql)
         remainTimes = self.retryTimes
         while remainTimes > 0:
             remainTimes -= 1
