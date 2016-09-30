@@ -52,16 +52,16 @@ def run(tag, detailTableList, hqlList, sqlList, dtype='DAY'):
         recordDate = toRecordDate(detectResult.minTagsSetTimeDate, dtype)
 
         connectionList = [dt.split(':')[0] for dt in detailTableList]
-        dirNameList = [dt.split(':')[1].upper() for dt in detailTableList]
+        tableList = [dt.split(':')[1].upper() for dt in detailTableList]
 
         loadPath = conf.get('webReloader', 'load.path')
-        loadPathList = [os.path.join(loadPath, dirName) for dirName in dirNameList]
+        loadPathList = [os.path.join(loadPath, table) for table in tableList]
 
-        fileNamePattern = conf.get('webReloader', 'file.name.pattern') % recordDate
-        fileNameList = [fileNamePattern % dirName for dirName in dirNameList]
+        fileNamePattern = conf.get('webReloader', 'file.name.pattern')
+        fileNameList = [fileNamePattern.format(table=table, date=recordDate) for table in tableList]
 
         bakupPath = conf.get('webReloader', 'bakup.path')
-        bakupPathList = [os.path.join(bakupPath, dirName, recordDate) for dirName in dirNameList]
+        bakupPathList = [os.path.join(bakupPath, table, recordDate) for table in tableList]
 
         logger.info('Running web reloader ... [recordDate=%s]' % recordDate)
         reloader = WebReloader(
@@ -74,7 +74,7 @@ def run(tag, detailTableList, hqlList, sqlList, dtype='DAY'):
             separator=conf.get('webReloader', 'field.separator', '|'),
             isAddRowIndex=False,
             parallel=conf.getint('webReloader', 'reload.parallel'),
-            retryTimes=conf.getint('webReloader', 'retry.time'),
+            retryTimes=conf.getint('webReloader', 'retry.times'),
             bakupPathList=bakupPathList,
             connectionList=connectionList,
             sqlList=[sql % recordDate for sql in sqlList],
@@ -93,16 +93,16 @@ def rerun(tag, detailTableList, hqlList, sqlList, startDate, endDate):
     while startDate <= endDate:
         logger.info("Running web reloader: [date=%s]" % startDate)
         connectionList = [dt.split(':')[0] for dt in detailTableList]
-        dirNameList = [dt.split(':')[1].upper() for dt in detailTableList]
+        tableList = [dt.split(':')[1].upper() for dt in detailTableList]
 
         loadPath = conf.get('webReloader', 'rerun.load.path')
-        loadPathList = [os.path.join(loadPath, dirName) for dirName in dirNameList]
+        loadPathList = [os.path.join(loadPath, table) for table in tableList]
 
-        fileNamePattern = conf.get('webReloader', 'file.name.pattern') % startDate
-        fileNameList = [fileNamePattern % dirName for dirName in dirNameList]
+        fileNamePattern = conf.get('webReloader', 'file.name.pattern')
+        fileNameList = [fileNamePattern.format(table=table, date=startDate) for table in tableList]
 
         bakupPath = conf.get('webReloader', 'bakup.path')
-        bakupPathList = [os.path.join(bakupPath, dirName, startDate) for dirName in dirNameList]
+        bakupPathList = [os.path.join(bakupPath, table, startDate) for table in tableList]
 
         reloader = WebReloader(
             tag=tag,
@@ -114,7 +114,7 @@ def rerun(tag, detailTableList, hqlList, sqlList, startDate, endDate):
             separator=conf.get('webReloader', 'field.separator', '|'),
             isAddRowIndex=False,
             parallel=conf.getint('webReloader', 'reload.parallel'),
-            retryTimes=conf.getint('webReloader', 'retry.time'),
+            retryTimes=conf.getint('webReloader', 'retry.times'),
             bakupPathList=bakupPathList,
             connectionList=connectionList,
             sqlList=[sql % startDate for sql in sqlList],

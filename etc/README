@@ -1,0 +1,49 @@
+配置说明
+
+hiveloader.ini
+
+[basic]
+log.conf.path: logging日志配置
+sync.duration: tag下载和扫描的天数
+hdfs.tags.path: HDFS上tag集路径
+fs.tags.path: 本地tag集路径
+
+
+[tagsLoader]
+run.timeout: 运行超时时间
+
+
+[tagDetector]
+detect.times: 最大检测次数
+detect.interval: 检测间隔
+
+
+[coreHiveLoader]
+java.load.cmd: java下载命令，参数: Hive查询数据的语句hql，下载文件路径path，字段分隔符separator
+shell.load.cmd: shell下载命令，参数: Hive查询数据的语句hql，下载文件目录path，字段分隔符separator
+web.reloader.base.loader: WebReloader的数据下载父类
+fs.reloader.base.loader: FsReloader的数据下载父类
+
+
+[webReloader]
+run.timeout: 运行超时时间
+reload.parallel: 最大并发度
+retry.times: 下载重试次数
+field.separator: 下载的数据文件的字段分隔符
+tags.history.path: tags操作历史路径
+load.path: 下载路径
+bakup.path: 备份路径
+rerun.load.path: 重跑时下载路径
+file.name.pattern: 下载数据文件名的模式，参数: oracle表名table，账单日期date
+is.add.row.index: 是否添加行号
+
+
+[vgopReloader]
+run.timeout: 运行超时时间
+reload.parallel: 最大并发度
+retry.times: 下载重试次数
+field.separator: 下载的数据文件的字段分隔符
+tags.history.path: tags操作历史路径
+load.path: 下载路径
+rerun.load.path: 重跑时下载路径
+checkers.path: 校验脚本所在目录
