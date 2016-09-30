@@ -38,7 +38,7 @@ class RunCheckerMixin(object):
         if out[0] != 0:
             logger.error("Run checker failed [cmd=%s], error: %s" % (cmd, str(out[1])))
             return False
-        logger.info("Checker log:\n %s" % str(out[1]))
+        logger.info("Checker log:\n%s" % str(out[1]))
         logger.info("Run checker success [checkerPath=%s] [loadPath=%s] [checkFileName=%s]" % (
             self.checkerPath, loadPath, checkFileName))
         return True
