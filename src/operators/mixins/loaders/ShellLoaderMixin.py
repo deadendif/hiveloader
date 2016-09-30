@@ -34,7 +34,7 @@ class ShellLoaderMixin(AbstractLoaderMixin):
 
         # 2. 执行shell命令下载数据
         tmpLoadPath = os.path.join(loadPath, '.tmp')
-        loadCmd = self.loadCmd % (tmpLoadPath, self.separator, hql)
+        loadCmd = self.loadCmd.format(path=tmpLoadPath, separator=self.separator, hql=hql)
         remainTimes = self.retryTimes
         while remainTimes > 0:
             remainTimes -= 1

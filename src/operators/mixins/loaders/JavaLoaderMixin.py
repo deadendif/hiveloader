@@ -29,15 +29,15 @@ class JavaLoaderMixin(AbstractLoaderMixin):
         if not self._isAllowed("jps -ml | awk '{print $2}' | grep \"hivedownload\" | wc -l"):
             return False
 
-        filepath = os.path.join(loadPath, fileName)
-        loadCmd = self.loadCmd % (hql, filepath, self.separator)
+        filePath = os.path.join(loadPath, fileName)
+        loadCmd = self.loadCmd.format(hql=hql, path=filePath, separator=self.separator)
         remainTimes = self.retryTimes
         while remainTimes > 0:
             remainTimes -= 1
             logger.info("Executing load command: [remainTimes=%d] [cmd=%s]" % (remainTimes, loadCmd))
             if 0 == os.system(loadCmd):
                 logger.info("Load from hive success: [loadPath=%s] [loadRecordNum=%d]" %
-                            (loadPath, FileUtils.countFilesRow(filepath)))
+                            (loadPath, FileUtils.countFilesRow(filePath)))
                 break
         else:
             logger.error("Load data from hive failed: [cmd=%s]" % loadCmd)
