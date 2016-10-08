@@ -23,13 +23,13 @@ logger = logging.getLogger('stdout')
 """
 将HDFS上近duration天的Tag及其生成时间下载到本地
 """
-
 def main():
     logger.info("Running tags loader ...")
     tagsLoader = TagsLoader(hdfsPath=conf.get('basic', 'hdfs.tags.path'),
                             fsPath=conf.get('basic', 'fs.tags.path'),
                             duration=conf.getint('basic', 'sync.duration'))
-    tagsLoader.run()
+    if not tagsLoader.run():
+        exit(-1)
 
 
 if __name__ == '__main__':

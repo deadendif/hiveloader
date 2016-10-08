@@ -33,6 +33,7 @@ class TagsLoader(object):
     """
     执行shell命令获取basetime前duration天的tag，并写入文件
     @param basetime: 时间区间的最后一天
+    @return 是否全部下载成功
     """
     def run(self, basetime=None):
         basetime = datetime.now() if basetime is None else basetime
@@ -45,7 +46,9 @@ class TagsLoader(object):
             if out[0] == 0:
                 self.__write(date.replace('/', ''), out[1].split('\n'))
             else:
-                log.error("Load tags from HDFS exception, error: %s" % str(out[1]))
+                logger.error("Load tags from HDFS exception, error: %s" % str(out[1]))
+                return False
+        return True
 
     """
     将shell命令的输出写入本地文件
@@ -67,16 +70,3 @@ class TagsLoader(object):
             if os.path.isfile(hiddenFilePath):
                 os.rename(hiddenFilePath, normalFilePath)
                 logger.info("Load tag '%s' to file '%s' success, timestamp: %s" % (tag, normalFilePath, tsp))
-
-
-if __name__ == '__main__':
-    import logging.config
-    from src.parser import conf
-
-    logging.config.fileConfig(conf.get('basic', 'log.conf.path'))
-
-    logger = logging.getLogger('stdout')
-    duration = conf.getint('basic', 'sync.duration')
-    hdfsPath = conf.get('basic', 'hdfs.tags.path')
-    fsPath = conf.get('basic', 'fs.tags.path')
-    TagsLoader(hdfsPath, fsPath, duration).run()

@@ -20,7 +20,7 @@ logger = logging.getLogger('stdout')
 
 def validate(params):
     if len(params) not in [8, 9, 10]:
-        logger.error("Wrong params numbers: [params=%s]" % str(params[1:]))
+        logger.error("Wrong params numbers: [params=%s]" % str(params))
         return False
 
     if params[0] == '':
