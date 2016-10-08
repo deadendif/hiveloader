@@ -9,6 +9,7 @@
 '''
 
 import os
+import re
 import logging
 import commands
 from datetime import datetime, timedelta
@@ -61,6 +62,9 @@ class TagsLoader(object):
             os.makedirs(ldir)
 
         for line in lines:
+            if re.search("^\w+ \d{13}$", line) is None:
+                logger.warning("Wrong format line: %s" % line)
+                continue
             tag, tsp = line.split(' ')
             hiddenFilePath = os.path.join(ldir, '.' + tag)
             normalFilePath = os.path.join(ldir, tag)

@@ -98,8 +98,8 @@ bin/vgopreloader.sh <tag> <hqlList> <dirNameList> <dataFileNameList> <maxFileSiz
 ```
 + `tag`：触发web回导的tag
 + `hqlList`：从Hive上查询数据的HQL列表，HQL格式：日期字段用`%s`占位，多个HQL用`&`分隔
-+ `dirNameList`：存放数据的目录名
-+ `dataFileNameList`：数据文件名，按照上述*潜规则*生成校验文件名和拆分文件名，**日期用`%s`占位**
++ `dirNameList`：存放数据的目录名，多个目录名用`&`分隔
++ `dataFileNameList`：数据文件名，按照上述*潜规则*生成校验文件名和拆分文件名，**日期用`%s`占位**，多个文件名用`&`分隔
 + `maxFileSize`：拆分后文件大小的最大值，**当为0时，不拆分文件**，单位：字节
 + `serialNoWidth`：拆分文件后编号位数，当`maxFileSize > 0`时有效
 + `checkerName`：用于生成校验文件的脚本名，脚本需位于`lib/checkers`，自定义脚本规则见`lib/checkers/README`，**当为空字符串`''`时，不生成校验文件**

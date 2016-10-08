@@ -80,7 +80,38 @@ def run(tag, hqlList, dirNameList, fileNameList, maxFileSize, serialNoWidth,
 
 def rerun(tag, hqlList, dirNameList, fileNameList, maxFileSize, serialNoWidth,
           checker, checkerFieldSeparator, startDate, endDate):
-    pass
+    """ 手动重跑，startDate和endDate为账单时间，天、月 """
+
+    logger.info('Running vgop reloader: [startDate=%s] [endDate=%s]' % (startDate, endDate))
+    recordDate = startDate
+    while recordDate <= endDate:
+        loadPath = conf.get('vgopReloader', 'rerun.load.path')
+        loadPathList = [os.path.join(loadPath, dirName) for dirName in dirNameList]
+
+        logger.info('Running vgop reloader ... [recordDate=%s]' % recordDate)
+        reloader = FsReloader(
+            tag=tag,
+            loadCmd=conf.get('coreHiveLoader', 'shell.load.cmd'),
+            recordDate=recordDate,
+            hqlList=[hql.replace('%s', recordDate) for hql in hqlList],
+            loadPathList=loadPathList,
+            fileNameList=[fn % recordDate for fn in fileNameList],
+            separator=conf.get('vgopReloader', 'field.separator', '|'),
+            isAddRowIndex=False,
+            parallel=conf.getint('vgopReloader', 'reload.parallel'),
+            retryTimes=conf.getint('vgopReloader', 'retry.times'),
+            maxFileSize=maxFileSize,
+            serialNoWidth=serialNoWidth,
+            checkerPath=os.path.join(conf.get('vgopReloader', 'checkers.path'), checker) if checker != '' else '',
+            checkerFieldSeparator=checkerFieldSeparator,
+            bakupPathList=[],
+            tagsHistoryPath='',
+            operationTime=None)
+        if not reloader.run():
+            exit(-1)
+        logger.info("Run vgop reloader success: [date=%s]" % recordDate)
+        recordDate = TimeUtils.next(recordDate)
+    logger.info("Run all vgop reloader success")
 
 
 def getFuncAndArgs(args):
