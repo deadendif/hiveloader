@@ -29,29 +29,26 @@ class TimeUtils(object):
         return None
 
     """
-    返回当前时间的前一月、前一天（字符串）
-    201609 >> 201608; 20160922 >> 20160921
+    返回时间nowDate增加delta天（或月）后的时间
+    201609,-2 >> 201607; 20160922,3 >> 20160925
     """
     @staticmethod
-    def prev(nowDate):
-        if len(nowDate) != 8 and len(nowDate) != 6:
-            raise Exception("Wrong param format: [param=%s]" % nowDate)
-        fmt = '%Y%m%d' if len(nowDate) == 8 else '%Y%m'
-        return (datetime.strptime(nowDate, fmt) + timedelta(days=-1)).strftime(fmt)
-
-    """
-    返回当前时间的后一月、后一天（字符串）
-    201609 >> 201610; 20160922 >> 20160923
-    """
-    @staticmethod
-    def next(nowDate):
+    def timedelta(nowDate, delta=-1):
         if len(nowDate) == 8:
-            return (datetime.strptime(nowDate, '%Y%m%d') + timedelta(days=1)).strftime('%Y%m%d')
+            return (datetime.strptime(nowDate, '%Y%m%d') + timedelta(days=delta)).strftime('%Y%m%d')
         elif len(nowDate) == 6:
-            now = datetime.strptime(nowDate, '%Y%m')
-            daysInMonth = calendar.monthrange(now.year, now.month)[1]
-            return (now + timedelta(days=daysInMonth)).strftime('%Y%m')
-        raise Exception("Wrong param format: [param=%s]" % nowDate)
+            if delta <= 0:
+                while delta < 0:
+                    nowDate = (datetime.strptime(nowDate, '%Y%m') + timedelta(days=-1)).strftime('%Y%m')
+                    delta += 1
+            else:
+                while delta > 0:
+                    now = datetime.strptime(nowDate, '%Y%m')
+                    daysInMonth = calendar.monthrange(now.year, now.month)[1]
+                    nowDate = (now + timedelta(days=daysInMonth)).strftime('%Y%m')
+                    delta -= 1
+            return nowDate
+        raise Exception("Wrong date format: [date=%s]" % nowDate)
 
     """
     返回字符串是否为天日期或月日期

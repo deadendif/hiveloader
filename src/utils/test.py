@@ -29,10 +29,8 @@ if __name__ == '__main__':
     # FileUtils.backup('/tmp/zzc/', '/tmp/zzc_bak', '*2016.txt')
 
     # print TimeUtils.tsp2time(1472478350916)
-    # print TimeUtils.prev('20160922')
-    # print TimeUtils.prev('201609')
-    # print TimeUtils.next('20160922')
-    # print TimeUtils.next('201609')
+    print TimeUtils.timedelta('20160901', 3)
+    print TimeUtils.timedelta('201609', 5)
 
     # FileUtils.addRowIndex('/tmp/files', '|', 10000)
 
@@ -47,4 +45,4 @@ if __name__ == '__main__':
 
     # print FileUtils.addExtension('/tmp/zzc/', '.txt', 'test*')
 
-    print DynamicClassLoader.load('TimeUtils.TimeUtils')
+    # print DynamicClassLoader.load('TimeUtils.TimeUtils')

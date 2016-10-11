@@ -8,6 +8,7 @@
 @date: 2016-09-21
 '''
 
+import re
 import logging
 
 from src.utils.TimeUtils import TimeUtils
@@ -17,7 +18,7 @@ logger = logging.getLogger('stdout')
 
 
 def validate(params):
-    if len(params) not in [4, 5, 6]:
+    if len(params) not in [6, ]:
         logger.error("Wrong params numbers: [params=%s]" % str(params))
         return False
 
@@ -48,13 +49,14 @@ def validate(params):
             logger.error("SQL format is invalid: [sqls=%s]" % params[3])
             return False
 
-    if len(params) == 5 and params[4].upper() not in ['DAY', 'MONTH']:
-            logger.error("Cycle type must be 'DAY' or 'MONTH': [type=%s]" % params[4])
+    if params[4].upper() in ['DAY', 'MONTH']:
+        # 匹配两种格式: -1,-8,-15 和 -1#-3
+        if re.search(r'^-\d+#-\d+$|^-\d+(,-\d+)*$', params[5].replace(' ', '')) is None:
+            logger.error("Date delta list is invalid: [deltaList=%s]" % params[5])
             return False
-
-    if len(params) == 6 and not TimeUtils.isComparable(params[4], params[5]):
-            logger.error("Date format is invalid: [startDate=%s] [endDate=%s]" % (params[4], params[5]))
-            return False
+    elif not TimeUtils.isComparable(params[4], params[5]):
+        logger.error("Date format is invalid: [startDate=%s] [endDate=%s]" % (params[4], params[5]))
+        return False
 
     logger.info("Params validation success")
     return True

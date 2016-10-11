@@ -29,7 +29,7 @@ def toRecordDate(day, dtype):
     """ 将tag所属日期转化成对应的账单日期 """
 
     recordDateTime = datetime.strptime(day, '%Y%m%d')
-    return TimeUtils.prev(recordDateTime.strftime('%Y%m' if dtype == 'MONTH' else '%Y%m%d'))
+    return TimeUtils.timedelta(recordDateTime.strftime('%Y%m' if dtype == 'MONTH' else '%Y%m%d'))
 
 
 def run(tag, hqlList, dirNameList, fileNameList, maxFileSize, serialNoWidth,
@@ -110,7 +110,7 @@ def rerun(tag, hqlList, dirNameList, fileNameList, maxFileSize, serialNoWidth,
         if not reloader.run():
             exit(-1)
         logger.info("Run vgop reloader success: [date=%s]" % recordDate)
-        recordDate = TimeUtils.next(recordDate)
+        recordDate = TimeUtils.timedelta(recordDate)
     logger.info("Run all vgop reloader success")
 
 

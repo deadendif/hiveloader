@@ -99,10 +99,13 @@ class FileUtils(object):
     @staticmethod
     def merge(dirPath, fileName, fileNamePattern="*", deleteFiles=True):
         subfiles = [sf for sf in glob.glob(os.path.join(dirPath, fileNamePattern)) if os.path.isfile(sf)]
+        filePath = os.path.join(dirPath, fileName)
         if len(subfiles) == 0:
+            if not os.path.exists(filePath):
+                os.mknod(filePath)
             return True
 
-        cmd = 'cat %s > %s' % (' '.join(subfiles), os.path.join(dirPath, fileName))
+        cmd = 'cat %s > %s' % (' '.join(subfiles), filePath)
         if os.system(cmd) == 0:
             if deleteFiles:
                 for sf in subfiles:
@@ -123,6 +126,9 @@ class FileUtils(object):
     def split(filePath, maxFileSize, prefix='', suffix='', serialNoWidth=3, serialNoFrom=1, delete=True):
         if not os.path.isfile(filePath):
             return False
+
+        if os.path.getsize(filePath) <= maxFileSize:
+            return True
 
         # 判断split版本
         getVersionCmd = "split --version | head -1 | awk '{print $NF}'"

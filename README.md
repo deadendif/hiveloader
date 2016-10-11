@@ -38,10 +38,10 @@ bin/tagdetector.sh  '10000' 'data/webReloaderTagsHistory' '4'
 
 ### WebReloader
 ##### 功能
-同步Hive中某天或某月的数据到Oracle（Hive > Local > Oracle）
+同步Hive中某些天或某些月的数据到Oracle（Hive > Local > Oracle）
 ##### 正常流程：
-1. 根据TagDetector的检测结果得到此次操作的操作时间operationTime及账单日期recordDate
-2. 从Hive中导出对应账单日期的数据到本地，备份数据，执行SQL清空Oracle对应日期的数据（避免重复导入）
+1. 根据TagDetector的检测结果得到此次操作的操作时间operationTime及待同步的账单日期
+2. 依次从Hive中导出对应账单日期的数据到本地，备份数据，执行SQL清空Oracle对应日期的数据（避免重复导入）
 3. 更新tag的历史操作时间为operationTime
 4. 使用sqlldr将本地数据导入Oracle（代码中不含此部分功能）
 
@@ -52,7 +52,7 @@ bin/tagdetector.sh  '10000' 'data/webReloaderTagsHistory' '4'
 ##### 用法
 ```bash
 # 正常流程
-bin/webreloader.sh <tag> <tableList> <hqlList> <sqlList> <type>
+bin/webreloader.sh <tag> <tableList> <hqlList> <sqlList> <type> <deltaList>
 
 # 重跑流程
 bin/webreloader.sh <tag> <tableList> <hqlList> <sqlList> <startDate> <endDate>
@@ -62,6 +62,7 @@ bin/webreloader.sh <tag> <tableList> <hqlList> <sqlList> <startDate> <endDate>
 + `hqlList`：从Hive上查询数据的HQL列表，HQL格式：**日期字段值用`%s`占位**，多个HQL用`&`分隔
 + `sqlList`：清空Oracle表的SQL列表，SQL格式：**日期字段用`%s`占位**，多个SQL用`&`分隔
 + `type`：任务周期类型，取值`DAY`、`MONTH`
++ `deltaList`：账单日期与tag归档日期的差值，举例：`-1`表示前1天/月，`-1,-3,-5`（或`-5，-3，-1`）表示前1、3、5天/月，`-1#-4`（或`-4#-1`）表示前1、2、3、4天/月，多个差值的顺序与回导是顺序对应
 + `startDate`：重跑的起始日期，如20160910或201609
 + `endDate`：重跑的结束日期（包含），如20161011或201610，当`endDate`与`startDate`相同时，表示重跑一天的数据
 

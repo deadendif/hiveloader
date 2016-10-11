@@ -21,19 +21,20 @@ from src.tagDetector.TagDetectResult import TagDetectResult
 from src.operators.webReloaders.WebReloader import WebReloader
 from src.utils.TimeLimitExecutor import TimeLimitExecutor
 from src.utils.TimeUtils import TimeUtils
+from src.utils.BasicUtils import BasicUtils
 from validate import validate
 
 logger = logging.getLogger('stdout')
 
 
-def toRecordDate(day, dtype):
+def toRecordDate(day, dtype, delta):
     """ 将tag所属日期转化成对应的账单日期 """
 
     recordDateTime = datetime.strptime(day, '%Y%m%d')
-    return TimeUtils.prev(recordDateTime.strftime('%Y%m' if dtype == 'MONTH' else '%Y%m%d'))
+    return TimeUtils.timedelta(recordDateTime.strftime('%Y%m' if dtype == 'MONTH' else '%Y%m%d'), delta)
 
 
-def run(tag, detailTableList, hqlList, sqlList, dtype='DAY'):
+def run(tag, detailTableList, hqlList, sqlList, dtype, deltaList):
     """ 定时执行 """
 
     logger.info("Running tag detector ...")
@@ -48,13 +49,56 @@ def run(tag, detailTableList, hqlList, sqlList, dtype='DAY'):
     logger.info('Detect result: %s' % str(detectResult))
 
     if detectResult.hasDetected:
-        # 话单时间
-        recordDate = toRecordDate(detectResult.minTagsSetTimeDate, dtype)
+        for delta in deltaList:
+            # 话单时间
+            recordDate = toRecordDate(detectResult.minTagsSetTimeDate, dtype, delta)
 
+            connectionList = [dt.split(':')[0] for dt in detailTableList]
+            tableList = [dt.split(':')[1].upper() for dt in detailTableList]
+
+            loadPath = conf.get('webReloader', 'load.path')
+            loadPathList = [os.path.join(loadPath, table) for table in tableList]
+
+            fileNamePattern = conf.get('webReloader', 'file.name.pattern')
+            fileNameList = [fileNamePattern.format(table=table, date=recordDate) for table in tableList]
+
+            bakupPath = conf.get('webReloader', 'bakup.path')
+            bakupPathList = [os.path.join(bakupPath, table, recordDate) for table in tableList]
+
+            logger.info('Running web reloader ... [recordDate=%s]' % recordDate)
+            reloader = WebReloader(
+                tag=tag,
+                loadCmd=conf.get('coreHiveLoader', 'java.load.cmd'),
+                recordDate=recordDate,
+                hqlList=[hql % recordDate for hql in hqlList],
+                loadPathList=loadPathList,
+                fileNameList=fileNameList,
+                separator=conf.get('webReloader', 'field.separator', '|'),
+                isAddRowIndex=False,
+                parallel=conf.getint('webReloader', 'reload.parallel'),
+                retryTimes=conf.getint('webReloader', 'retry.times'),
+                bakupPathList=bakupPathList,
+                connectionList=connectionList,
+                sqlList=[sql % recordDate for sql in sqlList],
+                tagsHistoryPath=conf.get('webReloader', 'tags.history.path'),
+                operationTime=detectResult.minTagsSetTime)
+            if not reloader.run():
+                exit(-1)
+    else:
+        logger.info("No need to run web reloader because of no tag detected")
+
+
+def rerun(tag, detailTableList, hqlList, sqlList, startDate, endDate):
+    """ 手动重跑，startDate和endDate为账单时间，天、月 """
+
+    logger.info('Running web reloader: [startDate=%s] [endDate=%s]' % (startDate, endDate))
+    recordDate = startDate
+    while recordDate <= endDate:
+        logger.info("Running web reloader: [date=%s]" % recordDate)
         connectionList = [dt.split(':')[0] for dt in detailTableList]
         tableList = [dt.split(':')[1].upper() for dt in detailTableList]
 
-        loadPath = conf.get('webReloader', 'load.path')
+        loadPath = conf.get('webReloader', 'rerun.load.path')
         loadPathList = [os.path.join(loadPath, table) for table in tableList]
 
         fileNamePattern = conf.get('webReloader', 'file.name.pattern')
@@ -63,7 +107,6 @@ def run(tag, detailTableList, hqlList, sqlList, dtype='DAY'):
         bakupPath = conf.get('webReloader', 'bakup.path')
         bakupPathList = [os.path.join(bakupPath, table, recordDate) for table in tableList]
 
-        logger.info('Running web reloader ... [recordDate=%s]' % recordDate)
         reloader = WebReloader(
             tag=tag,
             loadCmd=conf.get('coreHiveLoader', 'java.load.cmd'),
@@ -79,51 +122,11 @@ def run(tag, detailTableList, hqlList, sqlList, dtype='DAY'):
             connectionList=connectionList,
             sqlList=[sql % recordDate for sql in sqlList],
             tagsHistoryPath=conf.get('webReloader', 'tags.history.path'),
-            operationTime=detectResult.minTagsSetTime)
-        if not reloader.run():
-            exit(-1)
-    else:
-        logger.info("No need to run web reloader because of no tag detected")
-
-
-def rerun(tag, detailTableList, hqlList, sqlList, startDate, endDate):
-    """ 手动重跑，startDate和endDate为账单时间，天、月 """
-
-    logger.info('Running web reloader: [startDate=%s] [endDate=%s]' % (startDate, endDate))
-    while startDate <= endDate:
-        logger.info("Running web reloader: [date=%s]" % startDate)
-        connectionList = [dt.split(':')[0] for dt in detailTableList]
-        tableList = [dt.split(':')[1].upper() for dt in detailTableList]
-
-        loadPath = conf.get('webReloader', 'rerun.load.path')
-        loadPathList = [os.path.join(loadPath, table) for table in tableList]
-
-        fileNamePattern = conf.get('webReloader', 'file.name.pattern')
-        fileNameList = [fileNamePattern.format(table=table, date=startDate) for table in tableList]
-
-        bakupPath = conf.get('webReloader', 'bakup.path')
-        bakupPathList = [os.path.join(bakupPath, table, startDate) for table in tableList]
-
-        reloader = WebReloader(
-            tag=tag,
-            loadCmd=conf.get('coreHiveLoader', 'java.load.cmd'),
-            recordDate=startDate,
-            hqlList=[hql % startDate for hql in hqlList],
-            loadPathList=loadPathList,
-            fileNameList=fileNameList,
-            separator=conf.get('webReloader', 'field.separator', '|'),
-            isAddRowIndex=False,
-            parallel=conf.getint('webReloader', 'reload.parallel'),
-            retryTimes=conf.getint('webReloader', 'retry.times'),
-            bakupPathList=bakupPathList,
-            connectionList=connectionList,
-            sqlList=[sql % startDate for sql in sqlList],
-            tagsHistoryPath=conf.get('webReloader', 'tags.history.path'),
             operationTime=None)
         if not reloader.run():
             exit(-1)
-        logger.info("Run web reloader success: [date=%s]" % startDate)
-        startDate = TimeUtils.next(startDate)
+        logger.info("Run web reloader success: [date=%s]" % recordDate)
+        recordDate = TimeUtils.timedelta(recordDate, 1)
     logger.info("Run all web reloader success")
 
 
@@ -133,11 +136,14 @@ def getFuncAndArgs(args):
     for i in [1, 2, 3]:
         args[i] = args[i].split('&')
 
-    if len(args) == 5:
+    if args[4].upper() in ['DAY', 'MONTH']:
         args[4] = args[4].upper()
+        args[5] = BasicUtils.parse2list(args[5])
+        func = run
+    else:
+        func = rerun
 
-    argsFuncMap = {4: run, 5: run, 6: rerun}
-    return argsFuncMap[len(args)], tuple(args)
+    return func, tuple(args)
 
 
 if __name__ == '__main__':
