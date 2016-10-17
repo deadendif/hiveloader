@@ -2,9 +2,17 @@
 增量下载Hive表中的数据到本地
 
 ## 安装
-+ Coreutils版本低于8.16的需手动编译coreutils,详见lib/coreutils/README
++ Coreutils版本低于8.16的需手动编译coreutils,详见`lib/coreutils/README`
 
 ## 说明
+### 代码层次结构图
+!["代码层次结构图"](https://www.deadend.me/media/images/2016/10/17/6940a68b-81b7-4564-a212-3383622da31c.png)
+
++ `bin`层：负责环境初始化及`scripts`层的脚本的调用
++ `scripts`层：负责参数校验、解析，并调用`src`层代码
++ `src`层：实现了tag下载、检测，利用`mixin`机制实现了各Reloader类
+
+
 ### TagsLoader
 ##### 功能 
 将HDFS上的tag集同步到本地
@@ -62,7 +70,7 @@ bin/webreloader.sh <tag> <tableList> <hqlList> <sqlList> <startDate> <endDate>
 + `hqlList`：从Hive上查询数据的HQL列表，HQL格式：**日期字段值用`%s`占位**，多个HQL用`&`分隔
 + `sqlList`：清空Oracle表的SQL列表，SQL格式：**日期字段用`%s`占位**，多个SQL用`&`分隔
 + `type`：任务周期类型，取值`DAY`、`MONTH`
-+ `deltaList`：账单日期与tag归档日期的差值，举例：`-1`表示前1天/月，`-1,-3,-5`（或`-5，-3，-1`）表示前1、3、5天/月，`-1#-4`（或`-4#-1`）表示前1、2、3、4天/月，多个差值的顺序与回导是顺序对应
++ `deltaList`：账单日期与tag归档日期的差值，举例：`-1`表示前1天/月，`-1,-3,-5`（或`-5，-3，-1`）表示前1、3、5天/月，`-1#-4`（或`-4#-1`）表示前1、2、3、4天/月，多个差值的顺序与回导的顺序对应
 + `startDate`：重跑的起始日期，如20160910或201609
 + `endDate`：重跑的结束日期（包含），如20161011或201610，当`endDate`与`startDate`相同时，表示重跑一天的数据
 
@@ -123,3 +131,43 @@ bin/vgopreloader.sh '10000' 'SELECT ID, NAME, DAY FROM ZZC.HIVE_DATA_D WHERE DAY
 # 重跑流程
 bin/vgopreloader.sh '10000' 'SELECT ID, NAME, DAY FROM ZZC.HIVE_DATA_D WHERE DAY = %s' 'TEST_HIVE_D' 'FILENAME_D_%s_00.dat' '6553600' '5' 'vgopChecker.sh' '$' '20160918' '20160919'
 ```
+
+## 程序扩展
+### VgopRealoder文件校验方式扩展
+配置文件`etc/hiveloader.ini`中配置项`checkers.path`是校验脚本存放的路径。按照`lib/checkers/README`规范编写脚本（设脚本名为`demo.sh`）并把脚本放在`checkers.path`对应的目录。然后将脚本调用参数中的`checkerName`修改为新脚本名（`demo.sh`）即可。
+
+
+### Hive数据下载方式扩展
+Hive数据的下载方式因集群环境不同，可能需要进行扩展。扩展方法（参考`JavaLoaderMixin`或`ShellLoaderMixin`类）：
+
++ 编写`DemoLoaderMixin`类，继承`AbstractLoaderMixin`类并实现（重写）父类的`_load()`方法，该方法定义如下
+
+    ```python
+    """
+    [Overwrite] 执行命令从Hive上下载数据
+    @param hql: 从Hive下载数据执行的HQL
+    @param loadPath: 下载路径
+    @param fileName: 数据文件名
+    @return 是否下载成功
+    """
+    def _load(self, hql, loadPath, fileName):
+        return True
+    ```
++ 在配置文件`etc/hiveloader.ini`的`coreHiveLoader`配置块中，修改对应的`reloader.base.loader`的值，该值使子类（`JavaLoaderMixin`或`ShellLoaderMixin`）动态加载父类。
+
+### Hive数据下载及处理流程扩展
++ 采用`mixin`机制实现`XxxReloader`类（参考`FsReloader`或`WebReloader`类），并重写动态加载的父类`DemoLoaderMixin`的`_run()`方法，方法定义如下：
+
+    ```
+    """
+    [Overwrite] 执行第i个子操作
+    @param i: 下标
+    @return 是否执行成功
+    """
+    def _run(self, i):
+        return True
+    ```
+
+### 程序参数解析扩展
++ 在`scripts`层编写`valitdate.py`和`xxxReload.py`脚本，前者实现参数合法性的校验，后者实现参数的解析及`XxxReloader`的调用
++ 在`bin`层编写`xxxreloader.sh`脚本，实现环境的初始化及`xxxReload.py`的调用
