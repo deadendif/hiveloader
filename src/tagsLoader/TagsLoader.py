@@ -48,7 +48,6 @@ class TagsLoader(object):
                 self.__write(date.replace('/', ''), out[1].split('\n'))
             else:
                 logger.error("Load tags from HDFS exception, error: %s" % str(out[1]))
-                # return False
         return True
 
     """

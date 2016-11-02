@@ -21,9 +21,9 @@ class BasicUtils(object):
     @staticmethod
     def parse2list(s):
         s = s.replace(' ', '')
-        if re.search(r'^-\d(,-\d)*$', s):
+        if re.search(r'^-\d+(,-\d+)*$', s):
             return [int(i) for i in s.split(',')]
-        elif re.search(r'^-\d#-\d$', s):
+        elif re.search(r'^-\d+#-\d+$', s):
             begin, end = [int(i) for i in s.split('#')]
             if begin <= end:
                 return range(begin, end + 1)
