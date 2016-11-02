@@ -65,12 +65,15 @@ def run(tag, detailTableList, hqlList, sqlList, dtype, deltaList):
             bakupPath = conf.get('webReloader', 'bakup.path')
             bakupPathList = [os.path.join(bakupPath, table, recordDate) for table in tableList]
 
+            hqlList = [hql % recordDate if '%s' in hql else hql for hql in hqlList]
+            sqlList = [sql % recordDate if '%s' in sql else sql for sql in sqlList]
+
             logger.info('Running web reloader ... [recordDate=%s]' % recordDate)
             reloader = WebReloader(
                 tag=tag,
                 loadCmd=conf.get('coreHiveLoader', 'java.load.cmd'),
                 recordDate=recordDate,
-                hqlList=[hql % recordDate for hql in hqlList],
+                hqlList=hqlList,
                 loadPathList=loadPathList,
                 fileNameList=fileNameList,
                 separator=conf.get('webReloader', 'field.separator', '|'),
@@ -79,7 +82,7 @@ def run(tag, detailTableList, hqlList, sqlList, dtype, deltaList):
                 retryTimes=conf.getint('webReloader', 'retry.times'),
                 bakupPathList=bakupPathList,
                 connectionList=connectionList,
-                sqlList=[sql % recordDate for sql in sqlList],
+                sqlList=sqlList,
                 tagsHistoryPath=conf.get('webReloader', 'tags.history.path'),
                 operationTime=detectResult.minTagsSetTime)
             if not reloader.run():
@@ -107,11 +110,14 @@ def rerun(tag, detailTableList, hqlList, sqlList, startDate, endDate):
         bakupPath = conf.get('webReloader', 'bakup.path')
         bakupPathList = [os.path.join(bakupPath, table, recordDate) for table in tableList]
 
+        hqlList = [hql % recordDate if '%s' in hql else hql for hql in hqlList]
+        sqlList = [sql % recordDate if '%s' in sql else sql for sql in sqlList]
+
         reloader = WebReloader(
             tag=tag,
             loadCmd=conf.get('coreHiveLoader', 'java.load.cmd'),
             recordDate=recordDate,
-            hqlList=[hql % recordDate for hql in hqlList],
+            hqlList=hqlList,
             loadPathList=loadPathList,
             fileNameList=fileNameList,
             separator=conf.get('webReloader', 'field.separator', '|'),
@@ -120,7 +126,7 @@ def rerun(tag, detailTableList, hqlList, sqlList, startDate, endDate):
             retryTimes=conf.getint('webReloader', 'retry.times'),
             bakupPathList=bakupPathList,
             connectionList=connectionList,
-            sqlList=[sql % recordDate for sql in sqlList],
+            sqlList=sqlList,
             tagsHistoryPath=conf.get('webReloader', 'tags.history.path'),
             operationTime=None)
         if not reloader.run():

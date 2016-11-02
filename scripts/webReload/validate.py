@@ -39,15 +39,10 @@ def validate(params):
             logger.error("Table format is invalid: [tables=%s]" % params[1])
             return False
 
-    for hql in params[2].split('&'):
-        if '%s' not in hql:
-            logger.error("HQL format is invalid: [hqls=%s]" % params[2])
-            return False
-
-    for sql in params[3].split('&'):
-        if '%s' not in sql:
-            logger.error("SQL format is invalid: [sqls=%s]" % params[3])
-            return False
+    # hqls和sqls是否包含WHERE日期条件（全量/增量）必须保持一致（全有或全无）
+    if len(set(['%s' in ql for ql in (params[2].split('&') + params[3].split('&'))])) != 1:
+        logger.error("HQL's and SQL's format are not agree: [hqls=%s] [sqls=%s]" % (params[2], params[3]))
+        return False
 
     if params[4].upper() in ['DAY', 'MONTH']:
         # 匹配两种格式: -1,-8,-15 和 -1#-3
