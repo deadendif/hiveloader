@@ -47,7 +47,7 @@ bin/tagdetector.sh  '10000' 'data/webReloaderTagsHistory' '4'
 
 ### WebReloader
 ##### 功能
-同步Hive中某些天或某些月的数据到Oracle（Hive > Local > Oracle）
+同步Hive中某些天或某些月或全部的数据到Oracle（Hive > Local > Oracle）
 
 ##### 正常流程：
 1. 根据TagDetector的检测结果得到此次操作的操作时间operationTime及待同步的账单日期
@@ -69,8 +69,8 @@ bin/webreloader.sh <tag> <tableList> <hqlList> <sqlList> <startDate> <endDate>
 ```
 + `tag`：触发web回导的tag
 + `tableList`：待导入的Oracle表列表，Oracle表格式：<用户名>/<密码>@<实例名>:<表名>，多个Oracle表用`&`分隔
-+ `hqlList`：从Hive上查询数据的HQL列表，HQL格式：**日期字段值用`%s`占位**，多个HQL用`&`分隔
-+ `sqlList`：清空Oracle表的SQL列表，SQL格式：**日期字段用`%s`占位**，多个SQL用`&`分隔
++ `hqlList`：从Hive上查询数据的HQL列表，HQL格式：**如果是增量查询，日期字段值用`%s`占位**，多个HQL用`&`分隔
++ `sqlList`：清空Oracle表的SQL列表，SQL格式：**如果是增量删除，日期字段用`%s`占位**，多个SQL用`&`分隔
 + `type`：任务周期类型，取值`DAY`、`MONTH`
 + `deltaList`：账单日期与tag归档日期的差值，举例：`-1`表示前1天/月，`-1,-3,-5`（或`-5，-3，-1`）表示前1、3、5天/月，`-1#-4`（或`-4#-1`）表示前1、2、3、4天/月，多个差值的顺序与回导的顺序对应
 + `startDate`：重跑的起始日期，如20160910或201609
@@ -79,13 +79,16 @@ bin/webreloader.sh <tag> <tableList> <hqlList> <sqlList> <startDate> <endDate>
 示例  
 ```bash
 # 正常流程（单表）
-bin/webreloader.sh '10000' 'user/password@DB:USER.TEST_TABLE' 'SELECT IP, OS_VERSION, IMEI, DAY_ID FROM AMAPP_SDK_PEXG_LOGIN WHERE DAY_ID = %s' 'DELETE FROM USER.TEST_TABLE WHERE DAY_ID = %s' 'DAY'
+bin/webreloader.sh '10000' 'ora_user/password@DB:ORA_USER.TEST_TABLE' 'SELECT IP, OS_VERSION, IMEI, DAY_ID FROM HIVE_USER.AMAPP_SDK_PEXG_LOGIN WHERE DAY_ID = %s' 'DELETE FROM ORA_USER.TEST_TABLE WHERE DAY_ID = %s' 'DAY' '-1'
+
+# 正常流程（全量）
+bin/webreloader.sh '10000' 'ora_user/password@DB:ORA_USER.TEST_TABLE' 'SELECT IP, OS_VERSION, IMEI, DAY_ID FROM HIVE_USER.AMAPP_SDK_PEXG_LOGIN WHERE DAY_ID = %s' 'DELETE FROM ORA_USER.TEST_TABLE WHERE DAY_ID = %s' 'DAY' '-1'
 
 # 正常流程（多表）
-bin/webreloader.sh '10000' 'user/password@DB:USER.TEST_TABLE&user2/password2@DB2:USER2.TEST_TABLE2' 'SELECT IP, OS_VERSION, IMEI, DAY_ID FROM AMAPP_SDK_PEXG_LOGIN WHERE DAY_ID = %s&SELECT IP, DAY_ID FROM AMAPP_SDK_PEXG_LOGIN2 WHERE DAY_ID = %s' 'DELETE FROM USER.TEST_TABLE WHERE DAY_ID = %s&DELETE FROM USER2.TEST_TABLE2 WHERE DAY_ID = %s' 'DAY'
+bin/webreloader.sh '10000' 'ora_user/password@DB:ORA_USER.TEST_TABLE&ora_user2/password2@DB2:ORA_USER2.TEST_TABLE2' 'SELECT IP, OS_VERSION, IMEI, DAY_ID FROM HIVE_USER.AMAPP_SDK_PEXG_LOGIN WHERE DAY_ID = %s&SELECT IP, DAY_ID FROM HIVE_USER.AMAPP_SDK_PEXG_LOGIN2 WHERE DAY_ID = %s' 'DELETE FROM ORA_USER.TEST_TABLE WHERE DAY_ID = %s&DELETE FROM ORA_USER2.TEST_TABLE2 WHERE DAY_ID = %s' 'DAY' '-1,-3'
 
 # 重跑流程
-bin/webreloader.sh '10000' 'user/password@DB:USER.TEST_TABLE' 'SELECT IP, OS_VERSION, IMEI, DAY_ID FROM AMAPP_SDK_PEXG_LOGIN WHERE DAY_ID = %s' 'DELETE FROM USER.TEST_TABLE WHERE DAY_ID = %s' '20160918' '20160919'
+bin/webreloader.sh '10000' 'ora_user/password@DB:ORA_USER.TEST_TABLE' 'SELECT IP, OS_VERSION, IMEI, DAY_ID FROM HIVE_USER.AMAPP_SDK_PEXG_LOGIN WHERE DAY_ID = %s' 'DELETE FROM ORA_USER.TEST_TABLE WHERE DAY_ID = %s' '20160918' '20160919'
 ```
 
 ### FsReloader
