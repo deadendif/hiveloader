@@ -110,7 +110,7 @@ def rerun(tag, hqlList, dirNameList, fileNameList, maxFileSize, serialNoWidth,
         if not reloader.run():
             exit(-1)
         logger.info("Run vgop reloader success: [date=%s]" % recordDate)
-        recordDate = TimeUtils.timedelta(recordDate)
+        recordDate = TimeUtils.timedelta(recordDate, 1)
     logger.info("Run all vgop reloader success")
 
 
