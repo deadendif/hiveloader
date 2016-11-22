@@ -105,6 +105,10 @@ class FileUtils(object):
                 os.mknod(filePath)
             return True
 
+        if len(subfiles) == 1:
+            os.rename(subfiles[0], filePath)
+            return True
+
         cmd = 'cat %s > %s' % (' '.join(subfiles), filePath)
         if os.system(cmd) == 0:
             if deleteFiles:
