@@ -131,7 +131,10 @@ class FileUtils(object):
         if not os.path.isfile(filePath):
             return False
 
+        prefix = int(time.time()) if prefix == '' else prefix
+        dirPath = os.path.dirname(filePath)
         if os.path.getsize(filePath) <= maxFileSize:
+            os.rename(filePath, os.path.join(dirPath, prefix + ('%%0%dd' % serialNoWidth) % 1 + suffix))
             return True
 
         # 判断split版本
@@ -143,8 +146,6 @@ class FileUtils(object):
             if not os.path.isfile(splitTool):
                 raise Exception("Core utils 'split' not installed. Please read lib/coreutils/README")
 
-        prefix = int(time.time()) if prefix == '' else prefix
-        dirPath = os.path.dirname(filePath)
         fileName = os.path.basename(filePath)
         
         cmd = "cd %s && %s -C %d -a %d --additional-suffix='%s' --numeric-suffixes=%d '%s' '%s'" % (
